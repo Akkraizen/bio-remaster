@@ -5,6 +5,7 @@ import Projects from "@views/Projects.vue";
 import ProjectDetail from "@views/ProjectDetail.vue";
 import Test from "@views/Test.vue";
 import NotFound from "@views/NotFound.vue";
+import { playTransitionSound } from "@/utils/playTransitionSound.ts";
 
 const routes = [
   {
@@ -17,7 +18,8 @@ const routes = [
     component: Entrypoint,
     meta: {
       title: "Entrypoint | Akkraizen",
-      description: "Welcome to the digital realm of Akkraizen. Initialize session."
+      description:
+        "Welcome to the digital realm of Akkraizen. Session was initialized."
     }
   },
   {
@@ -35,7 +37,7 @@ const routes = [
     component: Projects,
     meta: {
       title: "List | Akkraizen",
-      description: "Portfolio of digital experiments and professional projects."
+      description: "Portfolio of digital experiments and projects."
     }
   },
   {
@@ -61,7 +63,7 @@ const routes = [
     name: "Core.NotFound",
     component: NotFound,
     meta: {
-      title: "404 Not Found | Akkraizen",
+      title: "404 | Akkraizen",
       description: "The requested page was not found."
     }
   }
@@ -85,6 +87,12 @@ router.beforeEach((to) => {
     for (const selector of selectors) {
       document.querySelector(selector)?.setAttribute("content", description);
     }
+  }
+});
+
+router.afterEach((to, from) => {
+  if (to.path !== from.path) {
+    playTransitionSound()
   }
 });
 

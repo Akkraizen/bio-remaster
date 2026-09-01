@@ -5,6 +5,7 @@ import NavLink from "@components/NavLink.vue";
 import CyberBadge from "@components/CyberBadge.vue";
 import CyberOutline from "@components/CyberOutline.vue";
 import CyberHero from "@components/CyberHero.vue";
+import { playTransitionSound } from "@/utils/playTransitionSound.ts";
 
 const route = useRoute();
 
@@ -41,12 +42,7 @@ watch(
       hover-background-color="black"
     >
       <div class="cyber-navbar-main">
-        <CyberBadge
-          text="ONLINE"
-          type="status"
-          shape="diagonal-tr-bl"
-          active
-        />
+        <CyberBadge text="ONLINE" type="status" shape="diagonal-tr-bl" active />
 
         <div class="toggle-container">
           <CyberOutline shape="diagonal-tl-br" :corner-size="10">
@@ -78,7 +74,11 @@ watch(
       </div>
     </CyberOutline>
 
-    <transition name="mobile-menu">
+    <transition
+      name="mobile-menu"
+      @before-enter="playTransitionSound()"
+      @after-leave="playTransitionSound()"
+    >
       <div v-if="isMenuOpen" class="mobile-menu">
         <div class="mobile-menu-content">
           <div class="menu-header">

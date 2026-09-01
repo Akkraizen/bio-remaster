@@ -1,29 +1,37 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref, onMounted } from "vue";
 import GlitchText from "@components/GlitchText.vue";
+import { playTransitionSound } from "@/utils/playTransitionSound.ts";
 
 const progress = ref(0);
 const isFinished = ref(false);
 const emit = defineEmits<{ finished: [] }>();
 
 const loadingSteps = [
-  'INITIALIZING_CORE',
-  'LOADING_SYSTEM_RESOURCES',
-  'ESTABLISHING_SECURE_LINK',
-  'DECRYPTING_DATA_VAULT',
-  'FINALIZING_BOOT_SEQUENCE'
+  "INITIALIZING_CORE",
+  "LOADING_SYSTEM_RESOURCES",
+  "ESTABLISHING_SECURE_LINK",
+  "DECRYPTING_DATA_VAULT",
+  "FINALIZING_BOOT_SEQUENCE"
 ] as const;
 
-const currentStep = ref<typeof loadingSteps[number]>(loadingSteps[0]);
+const currentStep = ref<(typeof loadingSteps)[number]>(loadingSteps[0]);
 
 onMounted(() => {
   const duration = 2500; // 2.5 seconds total
   const interval = 30;
   const increment = 100 / (duration / interval);
 
+  const audio = new Audio("/audio/progress-bar.wav");
+
+  audio.loop = true;
+  audio.volume = 0.5;
+
   const timer = setInterval(() => {
+    audio.play();
+
     progress.value += increment;
-    
+
     const stepIndex = Math.floor((progress.value / 100) * loadingSteps.length);
     if (stepIndex < loadingSteps.length) {
       currentStep.value = loadingSteps[stepIndex];
@@ -35,7 +43,10 @@ onMounted(() => {
       setTimeout(() => {
         isFinished.value = true;
         setTimeout(() => {
-          emit('finished');
+          audio.pause();
+          playTransitionSound();
+          console.log(audio);
+          emit("finished");
         }, 600);
       }, 500);
     }
@@ -44,7 +55,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <transition name="glitch">
+  <transition
+    name="glitch"
+    @before-enter="playTransitionSound()"
+    @after-leave="playTransitionSound()"
+  >
     <div v-if="!isFinished" class="loading-screen">
       <div class="loader-container">
         <GlitchText text="SYSTEM.BOOT"/>
@@ -143,11 +158,31 @@ onMounted(() => {
     width: 15px;
     height: 15px;
     border: 2px solid vars.$accent-color;
-    
-    &.top-left { top: -2px; left: -2px; border-right: none; border-bottom: none; }
-    &.top-right { top: -2px; right: -2px; border-left: none; border-bottom: none; }
-    &.bottom-left { bottom: -2px; left: -2px; border-right: none; border-top: none; }
-    &.bottom-right { bottom: -2px; right: -2px; border-left: none; border-top: none; }
+
+    &.top-left {
+      top: -2px;
+      left: -2px;
+      border-right: none;
+      border-bottom: none;
+    }
+    &.top-right {
+      top: -2px;
+      right: -2px;
+      border-left: none;
+      border-bottom: none;
+    }
+    &.bottom-left {
+      bottom: -2px;
+      left: -2px;
+      border-right: none;
+      border-top: none;
+    }
+    &.bottom-right {
+      bottom: -2px;
+      right: -2px;
+      border-left: none;
+      border-top: none;
+    }
   }
 }
 
@@ -163,7 +198,11 @@ onMounted(() => {
 }
 
 @keyframes scan {
-  from { transform: translateY(0); }
-  to { transform: translateY(180px); }
+  from {
+    transform: translateY(0);
+  }
+  to {
+    transform: translateY(180px);
+  }
 }
 </style>

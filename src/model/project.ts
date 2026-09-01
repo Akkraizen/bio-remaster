@@ -21,7 +21,7 @@ export const projects: Project[] = [
     name: "SJ",
     description: "Service that uses Tinder-like mechanism for job hunting.",
     fullDescription:
-      "SJ (SwapJob) is a modern platform designed to revolutionize the job hunting process. Inspired by dating apps, it uses a swipe-based mechanism where employers and candidates can express mutual interest. The platform focuses on quick interactions and reducing the friction in initial recruitment steps.",
+      "SJ is a modern platform designed to revolutionize the job hunting process. It uses a swipe-based mechanism where employers and candidates can express mutual interest. The platform focuses on quick interactions and reducing the friction in initial recruitment steps.",
     demo: "https://swapjob.ru",
     image: sjImg,
     stack: ["docker", "ts", "git", "python"]
@@ -32,7 +32,7 @@ export const projects: Project[] = [
     description:
       "Multifunctional Discord bot stylized as Hisoka Morrow from Hunter x Hunter. Bot was written on Kotlin.",
     fullDescription:
-      "A sophisticated Discord bot themed after the enigmatic character Hisoka Morrow. Developed using Kotlin and the JDA (Java Discord API) library, it features interactive games, moderation tools, and role-play commands, all delivered with Hisoka's signature personality.",
+      "A sophisticated Discord bot themed after the enigmatic character Hisoka Morrow. Developed using Kotlin and the Kord library, it features interactive games, moderation tools, and role-play commands, all delivered with Hisoka's signature personality.",
     source: "https://github.com/Akkraizen/Hisoka",
     demo: "https://discord.com/oauth2/authorize?client_id=1271073974356279396&permissions=8&integration_type=0&scope=bot",
     image: hisokaMorrowImg,
@@ -43,7 +43,7 @@ export const projects: Project[] = [
     name: "LinariBot",
     description: "Telegram bot for Linari community.",
     fullDescription:
-      "Custom-built Telegram bot specifically designed for the Linari community. It manages group interactions, provides utility commands, and helps automate common community management tasks, ensuring a smooth experience for all members.",
+      "Custom-built Telegram bot specifically designed for the Linari community. It manages group interactions, provides utility and moderation commands.",
     source: "https://github.com/Akkraizen/linari-bot",
     demo: "https://t.me/linarime_chat",
     image: linariBotImg,
@@ -55,7 +55,7 @@ export const projects: Project[] = [
     description:
       "Collection of services for automation tasks, written on Kotlin with Spring Framework.",
     fullDescription:
-      "AKHS is a distributed system comprising multiple microservices built with Kotlin and Spring Boot. It uses Apache Kafka for asynchronous communication between services to handle complex automation workflows and data processing tasks efficiently.",
+      "AKHS — is a collection of services for automation tasks, written on Kotlin with Spring Framework\n All services linked with each other with the help of Apache Kafka. This project can be fine tuned using environment variables.",
     source: "https://github.com/Akkraizen/AKHS",
     image: akhsImg,
     stack: ["kotlin", "spring", "gradle", "docker", "git"]
@@ -66,7 +66,7 @@ export const projects: Project[] = [
     description:
       "Rewrote version of my first project and my first Discord bot.",
     fullDescription:
-      "A complete overhaul and modernization of my very first project. This Discord bot was completely rewritten to follow modern design patterns, improve performance, and implement new features that weren't possible in the original version.",
+      "A complete overhaul and modernisation of my very first project. This Discord bot has been completely rewritten to improve performance, fix bugs and introduce new features that were not available in the original version.",
     source: "https://github.com/Akkraizen/ReverseRewrite",
     demo: "https://discord.com/oauth2/authorize?client_id=979745072843206686&permissions=8&integration_type=0&scope=bot",
     image: reverseImg,
@@ -77,7 +77,7 @@ export const projects: Project[] = [
     name: "Leetcode-rs",
     description: "My owned Leetcode problems solves, written on Rust.",
     fullDescription:
-      "A repository dedicated to solving algorithmic challenges on LeetCode using Rust. It focuses on idiomatic Rust code, performance optimizations, and deep diving into Rust's ownership and type systems.",
+      "A repository dedicated to solving algorithmic challenges on LeetCode using Rust. It focuses on idiomatic Rust code, performance optimizations, and deep diving into Rust's features.",
     source: "https://github.com/Akkraizen/leetcode-rs",
     stack: ["rust"]
   },

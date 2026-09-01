@@ -3,13 +3,22 @@ import { ref } from "vue";
 import CyberNavbar from "@components/CyberNavbar.vue";
 import LoadingScreen from "@components/LoadingScreen.vue";
 import CyberFooter from "@components/CyberFooter.vue";
+import { playTransitionSound } from "@/utils/playTransitionSound.ts";
+import InitScreen from "@components/InitScreen.vue";
 
-const isLoading = ref(true);
+const isInit = ref(true);
+const isLoading = ref(false);
 </script>
 
 <template>
-  <transition name="glitch" mode="out-in">
-    <LoadingScreen v-if="isLoading" @finished="isLoading = false" />
+  <transition
+    name="glitch"
+    mode="out-in"
+    @before-enter="playTransitionSound()"
+    @after-leave="playTransitionSound()"
+  >
+    <InitScreen v-if="isInit" @finished="isInit=false; isLoading=true"/>
+    <LoadingScreen v-else-if="isLoading" @finished="isLoading = false" />
     <div v-else class="app-container">
       <div class="grid-bg"></div>
       <div class="scanline"></div>

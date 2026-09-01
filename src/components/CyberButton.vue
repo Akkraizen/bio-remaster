@@ -25,12 +25,20 @@ const props = withDefaults(defineProps<Props>(), {
   fullWidth: false
 });
 
+const audio = new Audio("/audio/click.wav");
+
+const playSelectSound = () => {
+  audio.currentTime = 0;
+  audio.play();
+};
+
 const emit = defineEmits<{
   (e: "click", event: MouseEvent): void;
 }>();
 
 const handleClick = (event: MouseEvent) => {
   if (!props.disabled) {
+    playSelectSound();
     emit("click", event);
   }
 };
