@@ -5,15 +5,35 @@ import Social from "@components/Social.vue";
 import CyberImage from "@components/CyberImage.vue";
 import socials from "@assets/socials";
 import TechVerticalCarousel from "@components/TechVerticalCarousel.vue";
-import { ref, onMounted, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
 import Typed from "typed.js";
 import { useVersion } from "@/hook/useVersion";
+import { useMediaQuery } from "@vueuse/core";
+import type { CyberShape } from "@/hook/useCyberShape.ts";
 
 const version = useVersion();
+const rootRef = ref<HTMLElement>(document.body);
 const typedElement = ref<HTMLElement | null>(null);
+
 let typedInstance: Typed | null = null;
+let resizeObserver: ResizeObserver | null = null;
+let isLarge = useMediaQuery("(max-width: 1024px)");
+let isMobile = useMediaQuery("(max-width: 768px)");
+
+const updateDimensions = () => {
+  if (rootRef.value) {
+    isLarge = useMediaQuery("(max-width: 1024px)");
+    isMobile = useMediaQuery("(max-width: 768px)");
+  }
+};
 
 onMounted(() => {
+  nextTick(() => {
+    updateDimensions();
+    resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(rootRef.value);
+  });
+
   if (!typedElement.value) return;
 
   typedInstance = new Typed(typedElement.value, {
@@ -28,7 +48,29 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  resizeObserver?.disconnect();
   typedInstance?.destroy();
+});
+
+const calculateStackCorners = computed((): CyberShape => {
+  if (isLarge.value) return "top-corners";
+  return "top-right";
+});
+
+const calculateLinksCorners = computed((): CyberShape => {
+  if (isMobile.value) return "rectangle";
+  if (isLarge.value) return "bottom-right";
+  return "rectangle";
+});
+
+const calculateNicknamesCorners = computed((): CyberShape => {
+  if (isLarge.value) return "rectangle";
+  return "bottom-left";
+});
+
+const calculateInfoCorners = computed((): CyberShape => {
+  if (isLarge.value) return "bottom-corners";
+  return "bottom-right";
 });
 </script>
 
@@ -54,12 +96,14 @@ onUnmounted(() => {
         </div>
 
         <section class="bio-section">
-          <h1>File.Biography</h1>
-          <p class="bio-text"><span ref="typedElement"></span></p>
+          <div class="bio-text-container">
+            <h1>File.Biography</h1>
+            <p class="bio-text"><span ref="typedElement"></span></p>
+          </div>
         </section>
 
         <section class="tech-section">
-          <CyberCard title="File.Stack" shape="all-corners">
+          <CyberCard title="File.Stack" :shape="calculateStackCorners">
             <TechVerticalCarousel />
           </CyberCard>
         </section>
@@ -67,16 +111,17 @@ onUnmounted(() => {
 
       <div class="cards-group">
         <section class="nicknames-section">
-          <CyberCard title="File.Nicknames">
+          <CyberCard title="File.Nicknames" :shape="calculateNicknamesCorners">
             <ul class="nicknames-list">
               <li>Akkraizen</li>
               <li>kiNgchev</li>
+              <li>What else?..</li>
             </ul>
           </CyberCard>
         </section>
 
         <section class="contact-section">
-          <CyberCard title="File.Links">
+          <CyberCard title="File.Links" :shape="calculateLinksCorners">
             <div class="contact-grid">
               <a
                 v-for="social in socials"
@@ -90,6 +135,43 @@ onUnmounted(() => {
             </div>
           </CyberCard>
         </section>
+        <section class="info-section">
+          <CyberCard class="info-grid" :shape="calculateInfoCorners">
+            <table class="m-auto">
+              <tbody>
+                <tr>
+                  <td class="table-ceil">
+                    <h3 class="table-header">Age:</h3>
+                  </td>
+                  <td class="table-ceil">
+                    <a> 19 </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="table-ceil">
+                    <h3 class="table-header">Location:</h3>
+                  </td>
+                  <td class="table-ceil">
+                    <a
+                      href="https://yandex.ru/maps/geo/moskva/53166393/"
+                      target="_blank"
+                    >
+                      Moscow, Russia
+                    </a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="table-ceil">
+                    <h3 class="table-header">Timezone:</h3>
+                  </td>
+                  <td class="table-ceil">
+                    <a>UTC+3, Moscow timezone</a>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </CyberCard>
+        </section>
       </div>
     </div>
   </main>
@@ -97,6 +179,7 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 @use "@style/_vars";
+@use "@style/_mixins";
 
 .portfolio-container {
   display: flex;
@@ -148,6 +231,12 @@ onUnmounted(() => {
   flex: 1;
 }
 
+.bio-text-container {
+  padding: 15px;
+  height: 100%;
+  @include mixins.glass-effect(vars.$accent-color, 0.1);
+}
+
 .bio-text {
   line-height: 1.6;
 
@@ -181,6 +270,27 @@ onUnmounted(() => {
   }
 }
 
+.info-grid {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  align-content: space-evenly;
+}
+
+.table-header {
+  margin: 0;
+}
+
+.table-ceil:nth-child(odd) {
+  width: 30%;
+  text-align: start;
+  vertical-align: top;
+}
+
+.table-ceil a {
+  font-weight: 500;
+}
+
 @media (max-width: 1024px) {
   .top-row {
     flex-wrap: wrap;
@@ -208,6 +318,10 @@ onUnmounted(() => {
 
   .tech-section {
     flex: 1 1 100%;
+  }
+
+  .info-section {
+    width: 100%;
   }
 }
 

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { projects } from "@/model/project";
 import technologies from "@assets/technologies";
@@ -8,11 +8,49 @@ import CyberCard from "@components/CyberCard.vue";
 import CyberButton from "@components/CyberButton.vue";
 import { useVersion } from "@/hook/useVersion";
 import CyberImage from "@components/CyberImage.vue";
-import type { CyberShape } from "@/hook/useCyberShape";
+import { type CyberShape, useCyberShape } from "@/hook/useCyberShape";
+import { useMediaQuery } from "@vueuse/core";
 
 const route = useRoute();
 const router = useRouter();
 const version = useVersion();
+
+const rootRef = ref<HTMLElement>(document.body);
+let resizeObserver: ResizeObserver | null = null;
+let isMobile = useMediaQuery("(max-width: 768px)");
+
+const updateDimensions = () => {
+  if (rootRef.value) {
+    isMobile = useMediaQuery("(max-width: 768px)");
+  }
+};
+
+onMounted(() => {
+  nextTick(() => {
+    updateDimensions();
+    resizeObserver = new ResizeObserver(updateDimensions);
+    resizeObserver.observe(rootRef.value);
+  });
+});
+
+onUnmounted(() => {
+  resizeObserver?.disconnect();
+});
+
+const calculateDescriptionCorners = computed((): CyberShape => {
+  if (isMobile.value) return "top-corners";
+  return "top-right";
+});
+
+const calculateStackCorners = computed((): CyberShape => {
+  if (isMobile.value) return "rectangle";
+  return "bottom-left";
+});
+
+const calculateLinksCorners = computed((): CyberShape => {
+  if (isMobile.value) return "bottom-corners";
+  return "bottom-right";
+});
 
 const project = computed(() => {
   return projects.find((p) => p.id === route.params.id);
@@ -32,6 +70,13 @@ const sourceShape = computed<CyberShape>(() =>
 const backShape = computed<CyberShape>(() =>
   hasDemo.value || hasSource.value ? "bottom-corners" : "all-corners"
 );
+
+// @ts-ignore
+const { containerRef, getClipPath } = useCyberShape({
+  variant: calculateDescriptionCorners.value,
+  cornerSize: 20,
+  borderWidth: 2
+});
 
 const goBack = () => {
   router.push("/core/projects");
@@ -60,8 +105,12 @@ const redirect = (url: string) => {
           />
         </div>
 
-        <section class="info-section">
-          <div>
+        <section
+          class="info-section"
+          ref="containerRef"
+          :style="{ clipPath: getClipPath }"
+        >
+          <div class="project-description-container">
             <h1>Project.Description</h1>
             <p class="full-description">
               {{ project.fullDescription }}
@@ -72,7 +121,7 @@ const redirect = (url: string) => {
 
       <div class="project-detail-content-wrapper">
         <div class="stack-container">
-          <CyberCard title="Project.Stack">
+          <CyberCard title="Project.Stack" :shape="calculateStackCorners">
             <div class="stack-list">
               <div
                 v-for="tech in projectStack"
@@ -90,7 +139,7 @@ const redirect = (url: string) => {
         </div>
 
         <section class="actions-section">
-          <CyberCard title="Project.Links">
+          <CyberCard title="Project.Links" :shape="calculateLinksCorners">
             <div class="links-grid">
               <CyberButton
                 v-if="project.demo"
@@ -148,13 +197,13 @@ const redirect = (url: string) => {
 .detail-container {
   display: flex;
   flex-direction: column;
-  gap: 2rem;
+  gap: 15px;
 }
 
 .header-row {
   display: grid;
   grid-template-columns: auto 1fr;
-  gap: 2rem;
+  gap: 15px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;
@@ -184,6 +233,12 @@ const redirect = (url: string) => {
 
 .project-image {
   width: 100%;
+}
+
+.project-description-container {
+  padding: 15px;
+  height: 100%;
+  @include mixins.glass-effect(vars.$accent-color, 0.1);
 }
 
 .stack-list {

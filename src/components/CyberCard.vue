@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CyberOutline from "@components/CyberOutline.vue";
+import type { CyberShape } from "@/hook/useCyberShape.ts";
 
 interface Props {
   title?: string;
@@ -8,7 +9,7 @@ interface Props {
   borderWidth?: number;
   cornerSize?: number;
   backgroundColor?: string;
-  shape?: "default" | "all-corners" | "bottom-corners";
+  shape?: CyberShape;
 }
 
 withDefaults(defineProps<Props>(), {
