@@ -1,24 +1,8 @@
-/* color theme */
-$primary: #f08080;
-$primary-bg: #f08080;
-$secondary: #f4978e;
-$secondary-bg: rgb(59 59 59 / 0.88);
-$tertiary: #f8ad9d;
-$tertiary-bg: rgb(240 128 128 / 0.56);
-$quaternary: #fbc4ab;
-$accent: #ffdab9;
-
-
-$text-primary-color: #1a1a1a;
-$secondary-text: #f08080;
-$text-secondary-shadow-color: #f4978e;
-$text-tertiary-color: white;
-/* Values */
-$border-radius: 10px;
-$block-distance: 20px;
-
-/* Animations */
-$scaling-percent-1: 105%;
-$scaling-percent-2: 102%;
-
-$scaling-time: 0.2s;
+$bg-color: #050505;
+$text-color: #f0f0f0;
+$accent-color: #c6ff33;
+$secondary-accent: #ff003c;
+$warning-color: #ff003c;
+$grid-color: rgba(198, 255, 51, 0.05);
+$border-width: 2px;
+$corner-size: 15px;

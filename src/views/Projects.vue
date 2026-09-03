@@ -1,93 +1,39 @@
 <script setup lang="ts">
-import Card from "@components/Card.vue";
-import { projects } from "@/model/Projects.ts";
+import CyberHero from "@components/CyberHero.vue";
 import Project from "@components/Project.vue";
-import StatsContainer from "@components/stats/StatsContainer.vue";
-import StatsItem from "@components/stats/StatsItem.vue";
+import { projects } from "@/model/project";
+import { useVersion } from "@/hook/useVersion";
+
+const version = useVersion();
 </script>
 
 <template>
-  <main class="main">
-    <section class="column">
-      <card>
-        <h2>{{ $t("headers.projects.about") }}</h2>
-        <p v-html="$t('body.projects.about')"></p>
-      </card>
+  <main class="view">
+    <CyberHero
+      title="~/Core/Projects/"
+      :subtitle="`DATABASE ENTRIES: ${projects.length} | SYSTEM VERSION ${version}`"
+      variant="medium"
+    />
 
-      <card>
-        <h2>{{ $t("headers.projects.stats") }}</h2>
-        <stats-container>
-          <stats-item
-            header="3"
-            :description="$t('body.projects.stats.completed')"
-          />
-          <stats-item
-            header="4+"
-            :description="$t('body.projects.stats.years')"
-          />
-          <stats-item
-            header="15+"
-            :description="$t('body.projects.stats.contributions')"
-          />
-          <stats-item
-            header="3"
-            :description="$t('body.projects.stats.clients')"
-          />
-        </stats-container>
-      </card>
-    </section>
-
-    <section class="column">
-      <card>
-        <h2>{{ $t("headers.projects.projects") }}</h2>
-        <div class="projects-list-container">
-          <project
-            v-for="p in projects"
-            :name="p.name"
-            :description="p.description"
-            :source="p.source"
-            :demo="p.demo"
-          />
-        </div>
-      </card>
-    </section>
+    <div class="projects-list">
+      <Project
+        v-for="project in projects"
+        :key="project.id"
+        v-bind="project"
+        class="project-item"
+      />
+    </div>
   </main>
 </template>
 
 <style scoped lang="scss">
-@use "sass:color";
-@use "@style/vars";
-@use "@style/animations";
-
-.projects-list-container {
-  max-height: 400px;
-  overflow-y: auto;
-  padding: 5px;
-
-  &::-webkit-scrollbar {
-    width: 8px;
-  }
-
-  &::-webkit-scrollbar-thumb {
-    background: vars.$primary;
-    border-radius: 10px;
-    border: 2px solid #f1f1f1;
-
-    &:hover {
-      background: color.adjust(vars.$primary, $lightness: -10%);
-    }
-  }
-
-  @-moz-document url-prefix() {
-    scrollbar-width: thin;
-    scrollbar-color: vars.$primary white;
-    scrollbar-arrow-color: white;
-  }
+.projects-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 2rem;
 }
 
-.projects-list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+.project-item {
+  height: 100%;
 }
 </style>

@@ -1,60 +1,120 @@
 <script setup lang="ts">
-defineProps<{
-  name: string;
-  description: string;
-  source: string | null;
-  demo: string | null;
-}>();
+import { computed } from "vue";
+import { useRouter } from "vue-router";
+import CyberButton from "@components/CyberButton.vue";
+import CyberCard from "@components/CyberCard.vue";
+
+import type { Project } from "@/model/project";
+
+const props = defineProps<Project>();
+
+const router = useRouter();
+
+const demoShape = computed(() => {
+  if (props.demo && props.source) return "bottom-left";
+  return "bottom-corners";
+});
+
+const sourceShape = computed(() => {
+  if (props.demo && props.source) return "bottom-right";
+  return "bottom-corners";
+});
+
+const redirect = (event: Event, url?: string) => {
+  event.stopPropagation();
+  if (url) window.location.href = url;
+};
+
+const goToDetail = () => {
+  router.push({ name: "Core.ProjectDetail", params: { id: props.id } });
+};
 </script>
 
 <template>
-  <div class="project-item">
-    <h3>{{ name }}</h3>
-    <p v-html="$t(description)"></p>
-    <div class="project-links">
-      <a v-if="source" target="_blank" :href="source">GitHub</a>
-      <p v-if="source && demo">|</p>
-      <a v-if="demo" target="_blank" :href="demo">{{
-        $t("body.projects.projects.demo")
-      }}</a>
-    </div>
-  </div>
+  <CyberCard class="project-item" @click="goToDetail">
+    <template #header>
+      <div class="project-header">
+        <span class="project-id">#{{ props.id }}</span>
+        <span class="status-badge">ENCRYPTED</span>
+      </div>
+      <h3>{{ props.name }}</h3>
+    </template>
+
+    <p class="description">
+      {{ props.description }}
+    </p>
+
+    <template #footer>
+      <div class="project-footer">
+        <CyberButton
+          v-if="props.demo"
+          @click="(e) => redirect(e, props.demo)"
+          variant="solid"
+          :corner-size="8"
+          :shape="demoShape"
+          full-width
+        >
+          Demo
+        </CyberButton>
+        <CyberButton
+          v-if="props.source"
+          @click="(e) => redirect(e, props.source)"
+          variant="solid"
+          :corner-size="8"
+          :shape="sourceShape"
+          full-width
+        >
+          Source
+        </CyberButton>
+      </div>
+    </template>
+  </CyberCard>
 </template>
 
 <style scoped lang="scss">
+@use "@style/vars";
+@use "@style/_mixins";
+
 .project-item {
-  border-bottom: 2px solid #eee;
-  margin-bottom: 15px;
-  padding-bottom: 15px;
+  transition: transform 0.3s, border-color 0.3s;
+  height: 100%;
+  cursor: pointer;
 
-  h3 {
-    font-weight: bold;
-  }
-
-  &:last-child {
-    border-bottom: none;
-    padding-bottom: 0;
+  &:hover {
+    transform: translateY(-5px);
+    & > :deep(.cyber-outline-container) > .border-svg > .outline-path {
+      @include mixins.neon-glow(vars.$accent-color, 20px, 0.4);
+    }
   }
 }
 
-.project-links {
-  width: 100%;
+.project-header {
   display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  opacity: 0.7;
+}
+
+.status-badge {
+  color: vars.$text-color;
+}
+
+.description {
+  font-size: 0.9rem;
+  text-transform: none;
+  opacity: 0.8;
+  margin-bottom: 1.5rem;
+}
+
+.project-footer {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
   justify-content: center;
 
-  margin-top: 10px;
-
-  a {
-    margin: 0 5px;
-    font-weight: 500;
-
-    &:first-child {
-      margin-left: 0;
-    }
-
-    &:last-child {
-      margin-right: 0;
-    }
+  & > * {
+    flex: 1 1 0;
+    min-width: 0;
   }
 }
 </style>

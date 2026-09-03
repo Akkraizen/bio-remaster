@@ -7,19 +7,19 @@ This site shows my experience, projects, hobbies, preferences, tells about who I
 For install:
 
 ```bash
-npm install
+pnpm install
 ```
 
 For dev run:
 
 ```bash
-npm run dev
+pnpm run dev
 ```
 
 For create prod distribution:
 
 ```bash
-npn run build
+pnpm run build
 ```
 
 Prod distribution created in `/dist` directory.
@@ -27,5 +27,5 @@ Prod distribution created in `/dist` directory.
 For preview prod distribution:
 
 ```bash
-npm run preview
+pnpm run preview
 ```

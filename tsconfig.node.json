@@ -20,5 +20,5 @@
     "noFallthroughCasesInSwitch": true,
     "noUncheckedSideEffectImports": true
   },
-  "include": ["prettier.config.ts", "vite.config.ts", "tailwind.config.ts"]
+  "include": ["prettier.config.ts", "vite.config.ts"]
 }

@@ -1,13 +1,12 @@
 import { defineConfig } from "vite";
 import vue from "@vitejs/plugin-vue";
 import tailwindcss from "@tailwindcss/vite";
-import svgLoader from "vite-svg-loader";
 import * as path from "node:path";
+import packageJson from "./package.json";
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [vue(), tailwindcss(), svgLoader()],
-  css: {},
+  plugins: [vue(), tailwindcss()],
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "./src"),
@@ -16,5 +15,8 @@ export default defineConfig({
       "@components": path.resolve(__dirname, "./src/components"),
       "@views": path.resolve(__dirname, "./src/views")
     }
+  },
+  define: {
+    __APP_VERSION__: JSON.stringify(packageJson.version)
   }
 });

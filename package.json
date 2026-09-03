@@ -1,7 +1,7 @@
 {
   "name": "bio-remaster",
   "private": true,
-  "version": "0.0.0",
+  "version": "10.3.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -10,11 +10,10 @@
   },
   "dependencies": {
     "@tailwindcss/vite": "^4.1.10",
-    "number-to-words-ru": "^2.4.1",
+    "@vueuse/core": "^14.4.0",
     "tailwindcss": "^4.1.10",
     "typed.js": "^2.1.0",
     "vue": "^3.5.13",
-    "vue-i18n": "^11.2.8",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {
@@ -23,10 +22,8 @@
     "@vue/tsconfig": "^0.7.0",
     "prettier": "3.7.4",
     "sass": "^1.97.1",
-    "sass-loader": "^16.0.6",
     "typescript": "~5.7.2",
     "vite": "^6.3.5",
-    "vite-svg-loader": "^5.1.0",
     "vue-tsc": "^2.2.8"
   }
 }

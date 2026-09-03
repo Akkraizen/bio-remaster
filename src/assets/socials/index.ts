@@ -7,13 +7,20 @@ import youtubeSvg from "./youtube.svg?url";
 import lichessSvg from "./lichess.svg?url";
 import chessdotcomSvg from "./chessdotcom.svg?url";
 import codeforcesSvg from "./codeforces.svg?url";
-import steamSvg from "./steam.svg?url"
+import steamSvg from "./steam.svg?url";
 
-const socials = {
+export interface Social {
+  id: number;
+  name: string;
+  link: string;
+  icon: string;
+}
+
+const socials: Record<string, Social> = {
   github: {
     id: 1,
     name: "GitHub",
-    link: "https://github.com/kiNgchev",
+    link: "https://github.com/Akkraizen",
     icon: githubSvg
   },
   discord: {
@@ -37,7 +44,7 @@ const socials = {
   telegram: {
     id: 5,
     name: "Telegram",
-    link: "https://t.me/k1ngchev",
+    link: "https://t.me/akkraizenhere",
     icon: telegramSvg
   },
   youtube: {
@@ -67,7 +74,7 @@ const socials = {
   steam: {
     id: 10,
     name: "Steam",
-    link: "https://steamcommunity.com/id/k1ngchev/",
+    link: "https://steamcommunity.com/id/akkraizen/",
     icon: steamSvg
   }
 };
