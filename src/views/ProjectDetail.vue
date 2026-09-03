@@ -281,7 +281,7 @@ const redirect = (url: string) => {
 .project-detail-content-wrapper {
   display: grid;
   grid-template-columns: 2fr 1fr;
-  gap: 2rem;
+  gap: 15px;
 
   @media (max-width: 768px) {
     grid-template-columns: 1fr;

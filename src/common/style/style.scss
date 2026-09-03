@@ -2,6 +2,17 @@
 @use "_animations";
 @use "_vars";
 
+html {
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+  scrollbar-arrow-color: transparent;
+}
+
+::selection {
+  background-color: vars.$accent-color;
+  color: #000000;
+}
+
 body {
   margin: 0;
   padding: 0;

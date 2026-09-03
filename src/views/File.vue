@@ -12,6 +12,7 @@ import { useMediaQuery } from "@vueuse/core";
 import type { CyberShape } from "@/hook/useCyberShape.ts";
 
 const version = useVersion();
+const years = ref(0);
 const rootRef = ref<HTMLElement>(document.body);
 const typedElement = ref<HTMLElement | null>(null);
 
@@ -19,6 +20,17 @@ let typedInstance: Typed | null = null;
 let resizeObserver: ResizeObserver | null = null;
 let isLarge = useMediaQuery("(max-width: 1024px)");
 let isMobile = useMediaQuery("(max-width: 768px)");
+
+const countYears = () => {
+  let intId = setInterval(() => {
+    if (years.value < 4) {
+      years.value += 1;
+    } else {
+      clearInterval(intId);
+      return;
+    }
+  }, 250);
+};
 
 const updateDimensions = () => {
   if (rootRef.value) {
@@ -28,6 +40,8 @@ const updateDimensions = () => {
 };
 
 onMounted(() => {
+  countYears();
+
   nextTick(() => {
     updateDimensions();
     resizeObserver = new ResizeObserver(updateDimensions);
@@ -59,7 +73,6 @@ const calculateStackCorners = computed((): CyberShape => {
 
 const calculateLinksCorners = computed((): CyberShape => {
   if (isMobile.value) return "rectangle";
-  if (isLarge.value) return "bottom-right";
   return "rectangle";
 });
 
@@ -69,6 +82,13 @@ const calculateNicknamesCorners = computed((): CyberShape => {
 });
 
 const calculateInfoCorners = computed((): CyberShape => {
+  if (isMobile.value) return "rectangle";
+  if (isLarge.value) return "bottom-left";
+  return "rectangle";
+});
+
+const calculateExpCorners = computed((): CyberShape => {
+  if (isLarge.value) return "bottom-right";
   if (isLarge.value) return "bottom-corners";
   return "bottom-right";
 });
@@ -136,9 +156,21 @@ const calculateInfoCorners = computed((): CyberShape => {
           </CyberCard>
         </section>
         <section class="info-section">
-          <CyberCard class="info-grid" :shape="calculateInfoCorners">
-            <table class="m-auto">
+          <CyberCard
+            title="File.Data"
+            class="info-grid"
+            :shape="calculateInfoCorners"
+          >
+            <table class="info-table">
               <tbody>
+                <tr>
+                  <td class="table-ceil">
+                    <h3 class="table-header">Timezone:</h3>
+                  </td>
+                  <td class="table-ceil">
+                    <a>UTC+3, Moscow</a>
+                  </td>
+                </tr>
                 <tr>
                   <td class="table-ceil">
                     <h3 class="table-header">Age:</h3>
@@ -160,16 +192,23 @@ const calculateInfoCorners = computed((): CyberShape => {
                     </a>
                   </td>
                 </tr>
-                <tr>
-                  <td class="table-ceil">
-                    <h3 class="table-header">Timezone:</h3>
-                  </td>
-                  <td class="table-ceil">
-                    <a>UTC+3, Moscow timezone</a>
-                  </td>
-                </tr>
               </tbody>
             </table>
+          </CyberCard>
+        </section>
+        <section class="exp-section">
+          <CyberCard
+            title="File.Exp"
+            class="info-grid"
+            :shape="calculateExpCorners"
+          >
+            <div class="exp-container">
+              <h3>{{ years }}</h3>
+              <p>
+                Years of <br />
+                experience
+              </p>
+            </div>
           </CyberCard>
         </section>
       </div>
@@ -270,14 +309,25 @@ const calculateInfoCorners = computed((): CyberShape => {
   }
 }
 
-.info-grid {
+.info-table {
   display: flex;
   align-items: center;
-  justify-content: center;
   align-content: space-evenly;
+
+  h3 {
+    text-decoration: none;
+  }
+}
+
+td,
+th {
+  padding-top: 6px;
+  padding-bottom: 6px;
 }
 
 .table-header {
+  border-left: 2px solid vars.$warning-color;
+  padding-left: 1rem;
   margin: 0;
 }
 
@@ -287,8 +337,30 @@ const calculateInfoCorners = computed((): CyberShape => {
   vertical-align: top;
 }
 
+.table-ceil:nth-child(even) {
+  padding-left: 1rem;
+}
+
 .table-ceil a {
+  font-size: 0.95rem;
   font-weight: 500;
+}
+
+.exp-container {
+  @include mixins.glass-effect(vars.$accent-color, 0.1);
+  text-align: center;
+  height: 100%;
+  padding: 15px;
+
+  h3 {
+    margin: 0;
+    font-size: 1.5rem;
+  }
+
+  p {
+    margin: 5px 0 0;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 1024px) {
@@ -320,8 +392,9 @@ const calculateInfoCorners = computed((): CyberShape => {
     flex: 1 1 100%;
   }
 
-  .info-section {
-    width: 100%;
+  .info-section,
+  .exp-section {
+    flex: 1 1;
   }
 }
 
