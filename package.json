@@ -1,7 +1,7 @@
 {
   "name": "bio-remaster",
   "private": true,
-  "version": "10.3.0",
+  "version": "10.4.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -14,6 +14,7 @@
     "tailwindcss": "^4.1.10",
     "typed.js": "^2.1.0",
     "vue": "^3.5.13",
+    "vue-i18n": "^11.4.12",
     "vue-router": "^4.5.1"
   },
   "devDependencies": {

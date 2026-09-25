@@ -1,64 +1,51 @@
 <script setup lang="ts">
-import { computed, nextTick, onMounted, onUnmounted, ref } from "vue";
+import { computed } from "vue";
 import { useRoute, useRouter } from "vue-router";
-import { projects } from "@/model/project";
-import technologies from "@assets/technologies";
+import { getProjectsForLocale } from "@/model/project";
+import { getTechnologiesForLocale } from "@assets/technologies";
 import CyberHero from "@components/CyberHero.vue";
 import CyberCard from "@components/CyberCard.vue";
 import CyberButton from "@components/CyberButton.vue";
 import { useVersion } from "@/hook/useVersion";
 import CyberImage from "@components/CyberImage.vue";
 import { type CyberShape, useCyberShape } from "@/hook/useCyberShape";
-import { useMediaQuery } from "@vueuse/core";
+import { useResponsive } from "@/hook/useResponsive";
+import { useI18n } from "@/i18n";
 
 const route = useRoute();
 const router = useRouter();
 const version = useVersion();
+const { locale, t } = useI18n();
+const { getResponsiveShape } = useResponsive();
 
-const rootRef = ref<HTMLElement>(document.body);
-let resizeObserver: ResizeObserver | null = null;
-let isMobile = useMediaQuery("(max-width: 768px)");
-
-const updateDimensions = () => {
-  if (rootRef.value) {
-    isMobile = useMediaQuery("(max-width: 768px)");
-  }
-};
-
-onMounted(() => {
-  nextTick(() => {
-    updateDimensions();
-    resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(rootRef.value);
-  });
+const calculateDescriptionCorners = getResponsiveShape({
+  mobile: "top-corners",
+  default: "top-right"
 });
 
-onUnmounted(() => {
-  resizeObserver?.disconnect();
+const calculateStackCorners = getResponsiveShape({
+  mobile: "rectangle",
+  default: "bottom-left"
 });
 
-const calculateDescriptionCorners = computed((): CyberShape => {
-  if (isMobile.value) return "top-corners";
-  return "top-right";
+const calculateLinksCorners = getResponsiveShape({
+  mobile: "bottom-corners",
+  default: "bottom-right"
 });
 
-const calculateStackCorners = computed((): CyberShape => {
-  if (isMobile.value) return "rectangle";
-  return "bottom-left";
-});
-
-const calculateLinksCorners = computed((): CyberShape => {
-  if (isMobile.value) return "bottom-corners";
-  return "bottom-right";
-});
+const currentProjects = computed(() => getProjectsForLocale(locale.value));
 
 const project = computed(() => {
-  return projects.find((p) => p.id === route.params.id);
+  return currentProjects.value.find((p) => p.id === route.params.id);
 });
+
+const currentTechnologies = computed(() => getTechnologiesForLocale(locale.value));
 
 const projectStack = computed(() => {
   if (!project.value) return [];
-  return project.value.stack.map((key) => technologies[key]).filter(Boolean);
+  return project.value.stack
+    .map((key) => currentTechnologies.value[key])
+    .filter(Boolean);
 });
 
 const hasDemo = computed(() => Boolean(project.value?.demo));
@@ -71,12 +58,12 @@ const backShape = computed<CyberShape>(() =>
   hasDemo.value || hasSource.value ? "bottom-corners" : "all-corners"
 );
 
-// @ts-ignore
-const { containerRef, getClipPath } = useCyberShape({
+//@ts-ignore
+const { containerRef, getClipPath } = useCyberShape(() => ({
   variant: calculateDescriptionCorners.value,
   cornerSize: 20,
   borderWidth: 2
-});
+}));
 
 const goBack = () => {
   router.push("/core/projects");
@@ -111,7 +98,7 @@ const redirect = (url: string) => {
           :style="{ clipPath: getClipPath }"
         >
           <div class="project-description-container">
-            <h1>Project.Description</h1>
+            <h1>{{ t('projects.descriptionTitle') }}</h1>
             <p class="full-description">
               {{ project.fullDescription }}
             </p>
@@ -121,7 +108,7 @@ const redirect = (url: string) => {
 
       <div class="project-detail-content-wrapper">
         <div class="stack-container">
-          <CyberCard title="Project.Stack" :shape="calculateStackCorners">
+          <CyberCard :title="t('projects.stackTitle')" :shape="calculateStackCorners">
             <div class="stack-list">
               <div
                 v-for="tech in projectStack"
@@ -139,7 +126,7 @@ const redirect = (url: string) => {
         </div>
 
         <section class="actions-section">
-          <CyberCard title="Project.Links" :shape="calculateLinksCorners">
+          <CyberCard :title="t('projects.linksTitle')" :shape="calculateLinksCorners">
             <div class="links-grid">
               <CyberButton
                 v-if="project.demo"
@@ -149,7 +136,7 @@ const redirect = (url: string) => {
                 :corner-size="10"
                 full-width
               >
-                Live Demo
+                {{ t('projects.liveDemo') }}
               </CyberButton>
               <CyberButton
                 v-if="project.source"
@@ -159,7 +146,7 @@ const redirect = (url: string) => {
                 :corner-size="10"
                 full-width
               >
-                Source Code
+                {{ t('projects.sourceCode') }}
               </CyberButton>
               <CyberButton
                 @click="goBack"
@@ -168,7 +155,7 @@ const redirect = (url: string) => {
                 full-width
                 :corner-size="10"
               >
-                Back to List
+                {{ t('projects.backToList') }}
               </CyberButton>
             </div>
           </CyberCard>
@@ -178,13 +165,13 @@ const redirect = (url: string) => {
   </main>
   <main class="view" v-else>
     <CyberHero
-      title="Error.NotFound"
-      subtitle="PROJECT ENTRY NOT FOUND IN DATABASE"
+      :title="t('projects.notFoundTitle')"
+      :subtitle="t('projects.notFoundSubtitle')"
       variant="medium"
     />
     <div class="detail-container">
       <CyberButton @click="goBack" variant="outline">
-        Return to Projects
+        {{ t('projects.returnToProjects') }}
       </CyberButton>
     </div>
   </main>

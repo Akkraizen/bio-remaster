@@ -1,21 +1,28 @@
 <script setup lang="ts">
-import { ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import NavLink from "@components/NavLink.vue";
 import CyberBadge from "@components/CyberBadge.vue";
 import CyberOutline from "@components/CyberOutline.vue";
 import CyberHero from "@components/CyberHero.vue";
-import { playTransitionSound } from "@/utils/playTransitionSound.ts";
+import { playClickSound, playTransitionSound } from "@/utils/playTransitionSound.ts";
+import { useI18n } from "@/i18n";
 
 const route = useRoute();
+const { locale, toggleLocale, t } = useI18n();
 
 const isMenuOpen = ref(false);
 
-const navLinks = [
-  { path: "/core/entrypoint", label: "Core.Entrypoint" },
-  { path: "/core/file", label: "Core.File" },
-  { path: "/core/projects", label: "Core.Projects" }
-];
+const navLinks = computed(() => [
+  { path: "/core/entrypoint", label: t("nav.entrypoint") },
+  { path: "/core/file", label: t("nav.file") },
+  { path: "/core/projects", label: t("nav.projects") }
+]);
+
+const handleBadgeClick = () => {
+  playClickSound();
+  toggleLocale();
+};
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -42,7 +49,14 @@ watch(
       hover-background-color="black"
     >
       <div class="cyber-navbar-main">
-        <CyberBadge text="ONLINE" type="status" shape="diagonal-tr-bl" active />
+        <CyberBadge
+          :text="locale.toUpperCase()"
+          type="status"
+          shape="diagonal-tr-bl"
+          active
+          interactive
+          @click="handleBadgeClick"
+        />
 
         <div class="toggle-container">
           <CyberOutline shape="diagonal-tl-br" :corner-size="10">
@@ -52,7 +66,7 @@ watch(
               aria-label="Toggle navigation"
             >
               <span class="toggle-text">{{
-                isMenuOpen ? "[ CLOSE ]" : "[ MENU ]"
+                isMenuOpen ? t("nav.close") : t("nav.menu")
               }}</span>
               <div class="toggle-icon">
                 <span class="bar"></span>
@@ -84,7 +98,7 @@ watch(
           <div class="menu-header">
             <CyberHero
               title=""
-              subtitle="SYSTEM_NAV_LINKING..."
+              :subtitle="t('nav.systemNavLinking')"
               variant="small"
             />
           </div>
@@ -100,7 +114,7 @@ watch(
             />
           </nav>
           <div class="menu-footer">
-            <p>AUTH_REQ: GRANTED</p>
+            <p>{{ t("nav.authGranted") }}</p>
           </div>
         </div>
       </div>

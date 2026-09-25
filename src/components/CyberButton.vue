@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { type CyberShape } from "@/hook/useCyberShape";
 import CyberOutline from "@components/CyberOutline.vue";
+import { playClickSound } from "@/utils/playTransitionSound";
 
 interface Props {
   shape?: CyberShape;
@@ -25,11 +26,8 @@ const props = withDefaults(defineProps<Props>(), {
   fullWidth: false
 });
 
-const audio = new Audio("/audio/click.wav");
-
 const playSelectSound = () => {
-  audio.currentTime = 0;
-  audio.play();
+  playClickSound();
 };
 
 const emit = defineEmits<{

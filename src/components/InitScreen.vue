@@ -1,13 +1,20 @@
 <script setup lang="ts">
 import CyberButton from "@components/CyberButton.vue";
-import { playTransitionSound } from "@/utils/playTransitionSound.ts";
-import { ref } from "vue";
+import { playTransitionSound, soundsLoaded, preloadSounds } from "@/utils/playTransitionSound.ts";
+import { ref, onMounted } from "vue";
 import GlitchText from "@components/GlitchText.vue";
+import { useI18n } from "@/i18n";
 
 const isInit = ref<boolean>(false);
 const emit = defineEmits<{ finished: [] }>();
+const { t } = useI18n();
+
+onMounted(() => {
+  preloadSounds();
+});
 
 const init = () => {
+  if (!soundsLoaded.value) return;
   emit("finished");
 };
 </script>
@@ -20,8 +27,15 @@ const init = () => {
   >
     <div v-if="!isInit" class="init-screen">
       <div class="init-container">
-        <GlitchText text="SYSTEM.INIT" />
-        <CyberButton @click="init()" shape="rectangle" variant="solid">Initialize session!</CyberButton>
+        <GlitchText :text="t('init.title')" />
+        <CyberButton
+          :disabled="!soundsLoaded"
+          @click="init()"
+          shape="rectangle"
+          variant="solid"
+        >
+          {{ t('init.button') }}
+        </CyberButton>
 
         <div class="terminal-decor">
           <div class="scanline-loader"></div>

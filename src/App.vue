@@ -6,8 +6,50 @@ import CyberFooter from "@components/CyberFooter.vue";
 import { playTransitionSound } from "@/utils/playTransitionSound.ts";
 import InitScreen from "@components/InitScreen.vue";
 
-const isInit = ref(true);
+const SESSION_STORAGE_KEY = "session_initialized";
+
+function shouldSkipInit(): boolean {
+  if (typeof window === "undefined") return false;
+
+  try {
+    if (sessionStorage.getItem(SESSION_STORAGE_KEY) === "true")
+      return true;
+
+    const navEntries = performance.getEntriesByType("navigation") as PerformanceNavigationTiming[];
+    if (navEntries.length > 0 && navEntries[0].type === "reload") {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
+      return true;
+    }
+
+    const legacyNav = (window.performance as unknown as { navigation?: { type?: number } })?.navigation;
+    if (legacyNav && legacyNav.type === 1) {
+      sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
+      return true;
+    }
+  } catch {
+    // ignore sessionStorage errors in restricted environments
+  }
+
+  return false;
+}
+
+const skipIntro = shouldSkipInit();
+const isInit = ref(!skipIntro);
 const isLoading = ref(false);
+
+function handleInitFinished() {
+  isInit.value = false;
+  isLoading.value = true;
+}
+
+function handleLoadingFinished() {
+  isLoading.value = false;
+  try {
+    sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
+  } catch {
+    // ignore
+  }
+}
 </script>
 
 <template>
@@ -17,8 +59,8 @@ const isLoading = ref(false);
     @before-enter="playTransitionSound()"
     @after-leave="playTransitionSound()"
   >
-    <InitScreen v-if="isInit" @finished="isInit=false; isLoading=true"/>
-    <LoadingScreen v-else-if="isLoading" @finished="isLoading = false" />
+    <InitScreen v-if="isInit" @finished="handleInitFinished" />
+    <LoadingScreen v-else-if="isLoading" @finished="handleLoadingFinished" />
     <div v-else class="app-container">
       <div class="grid-bg"></div>
       <div class="scanline"></div>

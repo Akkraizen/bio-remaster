@@ -3,12 +3,14 @@ import { computed } from "vue";
 import { useRouter } from "vue-router";
 import CyberButton from "@components/CyberButton.vue";
 import CyberCard from "@components/CyberCard.vue";
+import { useI18n } from "@/i18n";
 
 import type { Project } from "@/model/project";
 
 const props = defineProps<Project>();
 
 const router = useRouter();
+const { t } = useI18n();
 
 const demoShape = computed(() => {
   if (props.demo && props.source) return "bottom-left";
@@ -35,7 +37,7 @@ const goToDetail = () => {
     <template #header>
       <div class="project-header">
         <span class="project-id">#{{ props.id }}</span>
-        <span class="status-badge">ENCRYPTED</span>
+        <span class="status-badge">{{ t('projects.encrypted') }}</span>
       </div>
       <h3>{{ props.name }}</h3>
     </template>
@@ -54,7 +56,7 @@ const goToDetail = () => {
           :shape="demoShape"
           full-width
         >
-          Demo
+          {{ t('projects.demo') }}
         </CyberButton>
         <CyberButton
           v-if="props.source"
@@ -64,7 +66,7 @@ const goToDetail = () => {
           :shape="sourceShape"
           full-width
         >
-          Source
+          {{ t('projects.source') }}
         </CyberButton>
       </div>
     </template>
