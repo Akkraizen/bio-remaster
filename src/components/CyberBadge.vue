@@ -7,15 +7,33 @@ interface Props {
   type?: 'status' | 'info' | 'tag';
   active?: boolean;
   shape?: CyberShape;
+  interactive?: boolean;
 }
 
 withDefaults(defineProps<Props>(), {
-  shape: "default"
+  shape: "default",
+  interactive: false
 });
+
+const emit = defineEmits<{
+  (e: 'click', event: MouseEvent): void;
+}>();
+
+const handleClick = (event: MouseEvent) => {
+  emit('click', event);
+};
 </script>
 
 <template>
-  <div class="cyber-badge" :class="[type || 'info', { active }]">
+  <div
+    class="cyber-badge"
+    :class="[type || 'info', { active, interactive }]"
+    :role="interactive ? 'button' : undefined"
+    :tabindex="interactive ? 0 : undefined"
+    @click="handleClick"
+    @keydown.enter="handleClick($event as unknown as MouseEvent)"
+    @keydown.space.prevent="handleClick($event as unknown as MouseEvent)"
+  >
     <CyberOutline
       :shape="shape"
       :border-width="2"
@@ -40,6 +58,22 @@ withDefaults(defineProps<Props>(), {
   font-family: 'JetBrains Mono', monospace;
   font-weight: bold;
   position: relative;
+  user-select: none;
+
+  &.interactive {
+    cursor: pointer;
+    transition: transform 0.2s ease, filter 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.2);
+    }
+
+    &:active {
+      transform: translateY(0);
+      filter: brightness(0.9);
+    }
+  }
 
   .badge-content {
     padding: 4px 10px;

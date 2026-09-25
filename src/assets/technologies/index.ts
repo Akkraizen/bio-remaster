@@ -15,6 +15,9 @@ import dockerSvg from "@assets/technologies/docker.svg?url";
 import gitSvg from "@assets/technologies/git.svg?url";
 import dotnetSvg from "@assets/technologies/dotnet.svg?url";
 import pythonSvg from "@assets/technologies/python.svg?url";
+import type { Locale } from "@/i18n";
+import en from "@/i18n/locales/en";
+import ru from "@/i18n/locales/ru";
 
 export interface Technology {
   id: number;
@@ -24,143 +27,160 @@ export interface Technology {
   description: string;
 }
 
-const technologies: Record<string, Technology> = {
+export interface TechnologyMeta {
+  id: number;
+  name: string;
+  link: string;
+  icon: string;
+  descriptionKey: keyof typeof en.technologies;
+}
+
+export const rawTechnologies: Record<string, TechnologyMeta> = {
   kotlin: {
     id: 1,
     name: "Kotlin",
     link: "https://kotlinlang.org/",
     icon: kotlinSvg,
-    description:
-      "A modern, cross-platform, statically typed, general-purpose programming language with type inference. Kotlin is designed to interoperate fully with Java."
+    descriptionKey: "kotlin"
   },
   go: {
     id: 2,
     name: "Go",
     link: "https://go.dev/",
     icon: goSvg,
-    description:
-      "An open-source programming language that makes it easy to build simple, reliable, and efficient software."
+    descriptionKey: "go"
   },
   rust: {
     id: 3,
     name: "Rust",
     link: "https://www.rust-lang.org/",
     icon: rustSvg,
-    description:
-      "A multi-paradigm, general-purpose programming language that emphasizes performance, type safety, and concurrency."
+    descriptionKey: "rust"
   },
   gradle: {
     id: 4,
     name: "Gradle",
     link: "https://gradle.org/",
     icon: gradleSvg,
-    description:
-      "An open-source build automation system that builds upon the concepts of Apache Ant and Apache Maven."
+    descriptionKey: "gradle"
   },
   spring: {
     id: 5,
     name: "Spring",
     link: "https://spring.io/",
     icon: springSvg,
-    description:
-      "A comprehensive programming and configuration model for modern Java-based enterprise applications."
+    descriptionKey: "spring"
   },
   java: {
     id: 6,
     name: "Java",
     link: "https://www.java.com/",
     icon: javaSvg,
-    description:
-      "A high-level, class-based, object-oriented programming language that is designed to have as few implementation dependencies as possible."
+    descriptionKey: "java"
   },
   groovy: {
     id: 7,
     name: "Groovy",
     link: "https://www.groovy-lang.org/",
     icon: groovySvg,
-    description:
-      "A powerful, multi-faceted language for the Java platform, combining static and dynamic capabilities."
+    descriptionKey: "groovy"
   },
   scala: {
     id: 8,
     name: "Scala",
     link: "https://www.scala-lang.org/",
     icon: scalaSvg,
-    description:
-      "A strong statically typed general-purpose programming language which supports both object-oriented programming and functional programming."
+    descriptionKey: "scala"
   },
   csharp: {
     id: 9,
     name: "C#",
     link: "https://dotnet.microsoft.com/en-us/languages/csharp",
     icon: csharpSvg,
-    description:
-      "A modern, object-oriented, and type-safe programming language developed by Microsoft that runs on the .NET Framework."
+    descriptionKey: "csharp"
   },
   js: {
     id: 10,
     name: "JS",
     link: "https://developer.mozilla.org/en-US/docs/Web/JavaScript",
     icon: jsSvg,
-    description:
-      "A programming language that is one of the core technologies of the World Wide Web, alongside HTML and CSS."
+    descriptionKey: "js"
   },
   ts: {
     id: 11,
     name: "TS",
     link: "https://www.typescriptlang.org",
     icon: tsSvg,
-    description:
-      "A strongly typed programming language that builds on JavaScript, giving you better tooling at any scale."
+    descriptionKey: "ts"
   },
   vue: {
     id: 12,
     name: "Vue",
     link: "https://vuejs.org/",
     icon: vueSvg,
-    description:
-      "A progressive framework for building user interfaces, designed to be incrementally adoptable."
+    descriptionKey: "vue"
   },
   nuxt: {
     id: 13,
     name: "Nuxt",
     link: "https://nuxt.com/",
     icon: nuxtSvg,
-    description:
-      "An open-source framework under MIT license that makes web development intuitive and powerful."
+    descriptionKey: "nuxt"
   },
   docker: {
     id: 14,
     name: "Docker",
     link: "https://www.docker.com/",
     icon: dockerSvg,
-    description:
-      "A set of platform as a service products that use OS-level virtualization to deliver software in packages called containers."
+    descriptionKey: "docker"
   },
   git: {
     id: 15,
     name: "Git",
     link: "https://git-scm.com/",
     icon: gitSvg,
-    description:
-      "A free and open source distributed version control system designed to handle everything from small to very large projects with speed and efficiency."
+    descriptionKey: "git"
   },
   dotnet: {
     id: 16,
     name: ".NET",
     link: "https://dotnet.microsoft.com/",
     icon: dotnetSvg,
-    description:
-      "A free, open-source, cross-platform framework for building many different types of applications."
+    descriptionKey: "dotnet"
   },
   python: {
     id: 17,
     name: "Python",
     link: "https://www.python.org/",
     icon: pythonSvg,
-    description:
-      "A high-level, interpreted, general-purpose programming language that emphasizes code readability and simplicity."
+    descriptionKey: "python"
   }
 };
+
+const localeDescriptions: Record<Locale, Record<string, string>> = {
+  en: en.technologies,
+  ru: ru.technologies
+};
+
+export function getTechnologiesForLocale(
+  locale: Locale
+): Record<string, Technology> {
+  const descriptions = localeDescriptions[locale] || localeDescriptions.en;
+  const result: Record<string, Technology> = {};
+
+  for (const [key, item] of Object.entries(rawTechnologies)) {
+    result[key] = {
+      id: item.id,
+      name: item.name,
+      link: item.link,
+      icon: item.icon,
+      description: descriptions[item.descriptionKey] || en.technologies[item.descriptionKey]
+    };
+  }
+
+  return result;
+}
+
+const technologies: Record<string, Technology> = getTechnologiesForLocale("en");
 
 export default technologies;

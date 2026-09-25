@@ -5,21 +5,35 @@ import Social from "@components/Social.vue";
 import CyberImage from "@components/CyberImage.vue";
 import socials from "@assets/socials";
 import TechVerticalCarousel from "@components/TechVerticalCarousel.vue";
-import { ref, onMounted, onUnmounted, computed, nextTick } from "vue";
+import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import Typed from "typed.js";
 import { useVersion } from "@/hook/useVersion";
-import { useMediaQuery } from "@vueuse/core";
-import type { CyberShape } from "@/hook/useCyberShape.ts";
+import { useResponsive } from "@/hook/useResponsive";
+import { useI18n, translations } from "@/i18n";
 
 const version = useVersion();
+const { locale, t } = useI18n();
 const years = ref(0);
-const rootRef = ref<HTMLElement>(document.body);
 const typedElement = ref<HTMLElement | null>(null);
 
 let typedInstance: Typed | null = null;
-let resizeObserver: ResizeObserver | null = null;
-let isLarge = useMediaQuery("(max-width: 1024px)");
-let isMobile = useMediaQuery("(max-width: 768px)");
+const { getResponsiveShape } = useResponsive();
+
+const nicknames = computed(() => translations[locale.value].file.nicknames);
+
+const initTyped = () => {
+  if (!typedElement.value) return;
+
+  typedInstance?.destroy();
+
+  typedInstance = new Typed(typedElement.value, {
+    strings: [translations[locale.value].file.biographyText],
+    typeSpeed: 20,
+    showCursor: true,
+    cursorChar: "_",
+    contentType: "html"
+  });
+};
 
 const countYears = () => {
   let intId = setInterval(() => {
@@ -32,73 +46,48 @@ const countYears = () => {
   }, 250);
 };
 
-const updateDimensions = () => {
-  if (rootRef.value) {
-    isLarge = useMediaQuery("(max-width: 1024px)");
-    isMobile = useMediaQuery("(max-width: 768px)");
-  }
-};
-
 onMounted(() => {
   countYears();
+  initTyped();
+});
 
-  nextTick(() => {
-    updateDimensions();
-    resizeObserver = new ResizeObserver(updateDimensions);
-    resizeObserver.observe(rootRef.value);
-  });
-
-  if (!typedElement.value) return;
-
-  typedInstance = new Typed(typedElement.value, {
-    strings: [
-      "Hello! I'm a <a>Kotlin</a>, <a>Go</a> &amp; <a>Rust</a> enjoyer. For more than four years, I have been programming bots, server apps, scripts, and SPA.<br>Just a little DevOPS.<br> I love chess and cats. Und Ich lerne <a>Deutsch</a>.<br> <br> You may follow me in my socials, or send a message in DM. Good luck, reader.\n"
-    ],
-    typeSpeed: 20,
-    showCursor: true,
-    cursorChar: "_",
-    contentType: "html"
-  });
+watch(locale, () => {
+  initTyped();
 });
 
 onUnmounted(() => {
-  resizeObserver?.disconnect();
   typedInstance?.destroy();
 });
 
-const calculateStackCorners = computed((): CyberShape => {
-  if (isLarge.value) return "top-corners";
-  return "top-right";
+const calculateStackCorners = getResponsiveShape({
+  large: "top-corners",
+  default: "top-right"
 });
 
-const calculateLinksCorners = computed((): CyberShape => {
-  if (isMobile.value) return "rectangle";
-  return "rectangle";
+const calculateLinksCorners = getResponsiveShape("rectangle");
+
+const calculateNicknamesCorners = getResponsiveShape({
+  large: "rectangle",
+  default: "bottom-left"
 });
 
-const calculateNicknamesCorners = computed((): CyberShape => {
-  if (isLarge.value) return "rectangle";
-  return "bottom-left";
+const calculateInfoCorners = getResponsiveShape({
+  mobile: "rectangle",
+  large: "bottom-left",
+  default: "rectangle"
 });
 
-const calculateInfoCorners = computed((): CyberShape => {
-  if (isMobile.value) return "rectangle";
-  if (isLarge.value) return "bottom-left";
-  return "rectangle";
-});
-
-const calculateExpCorners = computed((): CyberShape => {
-  if (isLarge.value) return "bottom-right";
-  if (isLarge.value) return "bottom-corners";
-  return "bottom-right";
+const calculateExpCorners = getResponsiveShape({
+  large: "bottom-corners",
+  default: "bottom-right"
 });
 </script>
 
 <template>
   <main class="view">
     <CyberHero
-      title="~/Core/File.prtf"
-      :subtitle="`AKKRAIZEN FILE ${version}`"
+      :title="t('file.title')"
+      :subtitle="`${t('file.subtitle')} ${version}`"
       variant="medium"
     />
 
@@ -117,13 +106,13 @@ const calculateExpCorners = computed((): CyberShape => {
 
         <section class="bio-section">
           <div class="bio-text-container">
-            <h1>File.Biography</h1>
+            <h1>{{ t('file.biographyTitle') }}</h1>
             <p class="bio-text"><span ref="typedElement"></span></p>
           </div>
         </section>
 
         <section class="tech-section">
-          <CyberCard title="File.Stack" :shape="calculateStackCorners">
+          <CyberCard :title="t('file.stackTitle')" :shape="calculateStackCorners">
             <TechVerticalCarousel />
           </CyberCard>
         </section>
@@ -131,17 +120,17 @@ const calculateExpCorners = computed((): CyberShape => {
 
       <div class="cards-group">
         <section class="nicknames-section">
-          <CyberCard title="File.Nicknames" :shape="calculateNicknamesCorners">
+          <CyberCard :title="t('file.nicknamesTitle')" :shape="calculateNicknamesCorners">
             <ul class="nicknames-list">
-              <li>Akkraizen</li>
-              <li>kiNgchev</li>
-              <li>What else?..</li>
+              <li v-for="(nick, index) in nicknames" :key="index">
+                {{ nick }}
+              </li>
             </ul>
           </CyberCard>
         </section>
 
         <section class="contact-section">
-          <CyberCard title="File.Links" :shape="calculateLinksCorners">
+          <CyberCard :title="t('file.linksTitle')" :shape="calculateLinksCorners">
             <div class="contact-grid">
               <a
                 v-for="social in socials"
@@ -157,7 +146,7 @@ const calculateExpCorners = computed((): CyberShape => {
         </section>
         <section class="info-section">
           <CyberCard
-            title="File.Data"
+            :title="t('file.dataTitle')"
             class="info-grid"
             :shape="calculateInfoCorners"
           >
@@ -165,30 +154,30 @@ const calculateExpCorners = computed((): CyberShape => {
               <tbody>
                 <tr>
                   <td class="table-ceil">
-                    <h3 class="table-header">Timezone:</h3>
+                    <h3 class="table-header">{{ t('file.timezone') }}</h3>
                   </td>
                   <td class="table-ceil">
-                    <a>UTC+3, Moscow</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="table-ceil">
-                    <h3 class="table-header">Age:</h3>
-                  </td>
-                  <td class="table-ceil">
-                    <a> 19 </a>
+                    <a>{{ t('file.timezoneValue') }}</a>
                   </td>
                 </tr>
                 <tr>
                   <td class="table-ceil">
-                    <h3 class="table-header">Location:</h3>
+                    <h3 class="table-header">{{ t('file.age') }}</h3>
+                  </td>
+                  <td class="table-ceil">
+                    <a>{{ t('file.ageValue') }}</a>
+                  </td>
+                </tr>
+                <tr>
+                  <td class="table-ceil">
+                    <h3 class="table-header">{{ t('file.location') }}</h3>
                   </td>
                   <td class="table-ceil">
                     <a
                       href="https://yandex.ru/maps/geo/moskva/53166393/"
                       target="_blank"
                     >
-                      Moscow, Russia
+                      {{ t('file.locationValue') }}
                     </a>
                   </td>
                 </tr>
@@ -198,16 +187,13 @@ const calculateExpCorners = computed((): CyberShape => {
         </section>
         <section class="exp-section">
           <CyberCard
-            title="File.Exp"
+            :title="t('file.expTitle')"
             class="info-grid"
             :shape="calculateExpCorners"
           >
             <div class="exp-container">
               <h3>{{ years }}</h3>
-              <p>
-                Years of <br />
-                experience
-              </p>
+              <p v-html="t('file.yearsOfExperience')"></p>
             </div>
           </CyberCard>
         </section>

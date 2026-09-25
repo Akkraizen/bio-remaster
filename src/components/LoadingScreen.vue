@@ -1,56 +1,62 @@
 <script setup lang="ts">
-import { ref, onMounted } from "vue";
+import { ref, computed, onMounted, onUnmounted } from "vue";
 import GlitchText from "@components/GlitchText.vue";
-import { playTransitionSound } from "@/utils/playTransitionSound.ts";
+import {
+  playTransitionSound,
+  playProgressBarSound,
+  stopProgressBarSound
+} from "@/utils/playTransitionSound.ts";
+import { useI18n, translations } from "@/i18n";
 
+const { locale, t } = useI18n();
 const progress = ref(0);
 const isFinished = ref(false);
 const emit = defineEmits<{ finished: [] }>();
 
-const loadingSteps = [
-  "INITIALIZING_CORE",
-  "LOADING_SYSTEM_RESOURCES",
-  "ESTABLISHING_SECURE_LINK",
-  "DECRYPTING_DATA_VAULT",
-  "FINALIZING_BOOT_SEQUENCE"
-] as const;
+const loadingSteps = computed(() => translations[locale.value].boot.steps);
 
-const currentStep = ref<(typeof loadingSteps)[number]>(loadingSteps[0]);
+const currentStepIndex = ref(0);
+const currentStep = computed(() => loadingSteps.value[currentStepIndex.value] || loadingSteps.value[0]);
+let timer: ReturnType<typeof setInterval> | null = null;
 
 onMounted(() => {
   const duration = 2500; // 2.5 seconds total
   const interval = 30;
   const increment = 100 / (duration / interval);
 
-  const audio = new Audio("/audio/progress-bar.wav");
+  playProgressBarSound();
 
-  audio.loop = true;
-  audio.volume = 0.5;
-
-  const timer = setInterval(() => {
-    audio.play();
-
+  timer = setInterval(() => {
     progress.value += increment;
 
-    const stepIndex = Math.floor((progress.value / 100) * loadingSteps.length);
-    if (stepIndex < loadingSteps.length) {
-      currentStep.value = loadingSteps[stepIndex];
+    const stepIndex = Math.floor((progress.value / 100) * loadingSteps.value.length);
+    if (stepIndex < loadingSteps.value.length) {
+      currentStepIndex.value = stepIndex;
     }
 
     if (progress.value >= 100) {
       progress.value = 100;
-      clearInterval(timer);
+      if (timer) {
+        clearInterval(timer);
+        timer = null;
+      }
       setTimeout(() => {
         isFinished.value = true;
         setTimeout(() => {
-          audio.pause();
+          stopProgressBarSound();
           playTransitionSound();
-          console.log(audio);
           emit("finished");
         }, 600);
       }, 500);
     }
   }, interval);
+});
+
+onUnmounted(() => {
+  if (timer) {
+    clearInterval(timer);
+  }
+  stopProgressBarSound();
 });
 </script>
 
@@ -62,7 +68,7 @@ onMounted(() => {
   >
     <div v-if="!isFinished" class="loading-screen">
       <div class="loader-container">
-        <GlitchText text="SYSTEM.BOOT"/>
+        <GlitchText :text="t('boot.title')"/>
         
         <div class="progress-wrapper">
           <div class="progress-bar">

@@ -1,14 +1,28 @@
 <script setup lang="ts">
-import { type CyberShape, useCyberShape } from "@/hook/useCyberShape";
+import {
+  type CyberCornersConfig,
+  type CyberCornerSizesConfig,
+  type CyberShape,
+  useCyberShape
+} from "@/hook/useCyberShape";
 
 interface Props {
   shape?: CyberShape;
   borderColor?: string;
   borderWidth?: number;
-  cornerSize?: number;
+  cornerSize?: number | CyberCornerSizesConfig | [number, number, number, number];
   backgroundColor?: string;
   hoverBackgroundColor?: string;
   strokeDasharray?: string;
+  corners?: CyberCornersConfig;
+  cutTopLeft?: boolean;
+  cutTopRight?: boolean;
+  cutBottomLeft?: boolean;
+  cutBottomRight?: boolean;
+  topLeftCornerSize?: number;
+  topRightCornerSize?: number;
+  bottomLeftCornerSize?: number;
+  bottomRightCornerSize?: number;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -18,14 +32,31 @@ const props = withDefaults(defineProps<Props>(), {
   cornerSize: 20,
   backgroundColor: "transparent",
   hoverBackgroundColor: "transparent",
-  strokeDasharray: ""
+  strokeDasharray: "",
+  corners: undefined,
+  cutTopLeft: undefined,
+  cutTopRight: undefined,
+  cutBottomLeft: undefined,
+  cutBottomRight: undefined,
+  topLeftCornerSize: undefined,
+  topRightCornerSize: undefined,
+  bottomLeftCornerSize: undefined,
+  bottomRightCornerSize: undefined
 });
 
-// @ts-ignore
 const { containerRef, width, height, getPath, getClipPath } = useCyberShape(() => ({
   variant: props.shape,
   cornerSize: props.cornerSize,
-  borderWidth: props.borderWidth
+  borderWidth: props.borderWidth,
+  corners: props.corners,
+  cutTopLeft: props.cutTopLeft,
+  cutTopRight: props.cutTopRight,
+  cutBottomLeft: props.cutBottomLeft,
+  cutBottomRight: props.cutBottomRight,
+  topLeftCornerSize: props.topLeftCornerSize,
+  topRightCornerSize: props.topRightCornerSize,
+  bottomLeftCornerSize: props.bottomLeftCornerSize,
+  bottomRightCornerSize: props.bottomRightCornerSize
 }));
 </script>
 

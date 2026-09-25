@@ -9,19 +9,28 @@ import technologies from "@/assets/technologies";
 
 const shapes = [
   "default",
+  "rectangle",
   "all-corners",
   "top-corners",
   "bottom-corners",
-  "bottom-corners-no-top",
+  "left-corners",
+  "right-corners",
   "top-left",
   "top-right",
   "bottom-left",
   "bottom-right",
   "diagonal-tl-br",
   "diagonal-tr-bl",
+  "no-top-left",
+  "no-top-right",
+  "no-bottom-left",
+  "no-bottom-right",
+  "bottom-corners-no-top",
+  "top-corners-no-bottom",
   "cyber-image-bottom"
 ] as const;
 
+//@ts-ignore
 const { containerRef, getClipPath } = useCyberShape({
   cornerSize: 20,
   borderWidth: 2
