@@ -1,4 +1,4 @@
-# kiNgchev bio
+# Akkraizen bio
 
 My own website for bio, written on TypeScript + Vue.js.
 
