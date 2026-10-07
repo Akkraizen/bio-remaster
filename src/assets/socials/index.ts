@@ -38,7 +38,7 @@ const socials: Record<string, Social> = {
   twitch: {
     id: 4,
     name: "Twitch",
-    link: "https://www.twitch.tv/k1ngchev",
+    link: "https://www.twitch.tv/akkraizen",
     icon: twitchSvg
   },
   telegram: {
