@@ -11,12 +11,16 @@ import CyberImage from "@components/CyberImage.vue";
 import { type CyberShape, useCyberShape } from "@/hook/useCyberShape";
 import { useResponsive } from "@/hook/useResponsive";
 import { useI18n } from "@/i18n";
+import DecryptText from "@components/DecryptText.vue";
+import { openExternal } from "@/utils/uiSounds.ts";
+import { useTheme } from "@/hook/useTheme.ts";
 
 const route = useRoute();
 const router = useRouter();
 const version = useVersion();
 const { locale, t } = useI18n();
 const { getResponsiveShape } = useResponsive();
+const { logoUrl } = useTheme();
 
 const calculateDescriptionCorners = getResponsiveShape({
   mobile: "top-corners",
@@ -70,7 +74,7 @@ const goBack = () => {
 };
 
 const redirect = (url: string) => {
-  window.open(url, "_blank");
+  openExternal(url, true);
 };
 </script>
 
@@ -86,7 +90,7 @@ const redirect = (url: string) => {
       <div class="header-row">
         <div class="project-image-container">
           <CyberImage
-            :src="project.image || '/logo.svg'"
+            :src="project.image || logoUrl"
             :alt="project.name"
             class="project-image"
           />
@@ -98,7 +102,7 @@ const redirect = (url: string) => {
           :style="{ clipPath: getClipPath }"
         >
           <div class="project-description-container">
-            <h1>{{ t('projects.descriptionTitle') }}</h1>
+            <h1><DecryptText :text="t('projects.descriptionTitle')" /></h1>
             <p class="full-description">
               {{ project.fullDescription }}
             </p>
@@ -106,7 +110,10 @@ const redirect = (url: string) => {
         </section>
       </div>
 
-      <div class="project-detail-content-wrapper">
+      <div
+        class="project-detail-content-wrapper"
+        data-cursor-group=".cyber-card-container"
+      >
         <div class="stack-container">
           <CyberCard :title="t('projects.stackTitle')" :shape="calculateStackCorners">
             <div class="stack-list">
@@ -127,7 +134,7 @@ const redirect = (url: string) => {
 
         <section class="actions-section">
           <CyberCard :title="t('projects.linksTitle')" :shape="calculateLinksCorners">
-            <div class="links-grid">
+            <div class="links-grid" data-cursor-group=".cyber-button-container">
               <CyberButton
                 v-if="project.demo"
                 @click="redirect(project.demo)"

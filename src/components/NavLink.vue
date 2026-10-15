@@ -18,7 +18,7 @@ interface Props {
 const route = useRoute();
 
 const props = withDefaults(defineProps<Props>(), {
-  borderColor: "#c6ff33",
+  borderColor: "var(--accent-color, #c6ff33)",
   borderWidth: 2,
   cornerSize: 12,
   backgroundColor: "rgba(0, 0, 0, 0)"

@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CyberOutline from "@components/CyberOutline.vue";
+import { openExternal } from "@/utils/uiSounds.ts";
 
 interface Props {
   image: string;
@@ -11,7 +12,7 @@ const props = defineProps<Props>();
 
 const handleClick = () => {
   if (props.link) {
-    window.location.href = props.link;
+    openExternal(props.link);
   }
 };
 </script>
@@ -79,7 +80,7 @@ const handleClick = () => {
 
   &:hover {
     .tech-text {
-      color: black;
+      color: vars.$on-accent-color;
     }
 
     .tech-image {
@@ -96,7 +97,7 @@ const handleClick = () => {
   left: 4px;
   width: 121px;
   height: 100%;
-  background: rgba(vars.$bg-color, 0.8);
+  background: vars.alpha(vars.$bg-color, 0.8);
   backdrop-filter: blur(5px);
 }
 

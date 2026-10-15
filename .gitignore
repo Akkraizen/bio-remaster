@@ -92,3 +92,6 @@ test/
 dist/
 npm-debug.log
 yarn-error.log
+
+# Generated from public/logo.svg by scripts/generate-logos.js
+public/logos/

@@ -5,7 +5,7 @@
 /// @param {Color} $color - Base color for the glass effect
 /// @param {Number} $opacity - Opacity of the background
 @mixin glass-effect($color: vars.$accent-color, $opacity: 0.1) {
-  background: rgba($color, $opacity);
+  background: vars.alpha($color, $opacity);
 }
 
 /// Mixin for neon glow effect
@@ -13,7 +13,7 @@
 /// @param {Length} $blur - Blur radius of the glow
 /// @param {Number} $opacity - Opacity of the glow
 @mixin neon-glow($color: vars.$accent-color, $blur: 20px, $opacity: 0.4) {
-  box-shadow: 0 0 $blur rgba($color, $opacity);
+  box-shadow: 0 0 $blur vars.alpha($color, $opacity);
 }
 
 /// Mixin for cyberpunk stripes (diagonal lines)
@@ -23,8 +23,8 @@
 @mixin cyberpunk-stripes($color: vars.$accent-color, $opacity: 1, $size: 5px) {
   background: repeating-linear-gradient(
     135deg,
-    rgba($color, $opacity),
-    rgba($color, $opacity) $size,
+    vars.alpha($color, $opacity),
+    vars.alpha($color, $opacity) $size,
     transparent $size,
     transparent $size * 2
   );

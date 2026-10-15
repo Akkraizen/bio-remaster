@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, onUnmounted } from "vue";
 import technologiesMap, { type Technology } from "@assets/technologies";
 import TechnologyItem from "@components/Technology.vue";
+import { playCarouselTick } from "@/utils/synthSounds.ts";
 
 const props = defineProps<{
   duration?: number;
@@ -12,13 +13,10 @@ const duration = computed(() => props.duration || 30);
 const technologies = Object.values(technologiesMap);
 type CarouselItem = Technology & { uniqueId: string };
 const techCount = technologies.length;
-const itemHeight = 50; // Высота одного элемента с учетом отступов (40px контент + 10px зазор)
-const itemWidth = 141; // Ширина колонки в горизонтальной ленте (125px контент + 16px зазор)
+const itemHeight = 50;
+const itemWidth = 141;
 
-// Длина одной копии списка вдоль оси прокрутки.
-// От нее зависит бесшовный цикл — окно не должно выходить за пределы списка.
 const listPeriod = computed(() => {
-  // Планшет: горизонтальная лента, по одному элементу в колонке
   if (isHorizontal.value) {
     return techCount * itemWidth;
   }
@@ -29,18 +27,13 @@ const listPeriod = computed(() => {
 
 const itemSize = computed(() => (isHorizontal.value ? itemWidth : itemHeight));
 
-// Радиус фокусного окна в шагах элементов: по вертикали видны 3 элемента,
-// по горизонтали — 5 (центральный + по два соседа)
 const focusRadius = computed(() => (isHorizontal.value ? 2.5 : 1.5));
 
 const offset = ref(0);
 const isHovered = ref(false);
 const isAnimating = ref(false);
-// Планшеты и мобильные устройства: компактный режим со свайпом
 const isCompact = ref(false);
-// Планшеты: вертикальная прокрутка заменяется горизонтальной лентой
 const isHorizontal = ref(false);
-// Мобильные: две колонки (компактный режим без планшетов)
 const isTwoColumn = computed(() => isCompact.value && !isHorizontal.value);
 let animationFrame: number;
 let lastTime: number;
@@ -48,13 +41,31 @@ let timeSinceLastSwitch = 0;
 let compactQuery: MediaQueryList | null = null;
 let tabletQuery: MediaQueryList | null = null;
 
-const next = () => {
+const stepCount = ref(0);
+
+const centerIndex = computed(() => {
+  if (!containerRef.value) return -1;
+  const containerSize = isHorizontal.value
+    ? containerRef.value.clientWidth
+    : containerRef.value.clientHeight;
+  const listOffset = offset.value + dragOffset.value - listPeriod.value;
+  return Math.round(
+    (containerSize / 2 - listOffset - itemSize.value / 2) / itemSize.value
+  );
+});
+
+const markArrival = (manual: boolean) => {
+  stepCount.value++;
+  if (manual) playCarouselTick();
+};
+
+const next = (manual = false) => {
   if (isAnimating.value) return;
   isAnimating.value = true;
 
-  // Принудительно выравниваем текущий offset перед смещением
   const currentStep = Math.round(offset.value / itemSize.value);
   offset.value = (currentStep - 1) * itemSize.value;
+  markArrival(manual);
 
   setTimeout(() => {
     isAnimating.value = false;
@@ -65,12 +76,13 @@ const next = () => {
   }, 300);
 };
 
-const prev = () => {
+const prev = (manual = false) => {
   if (isAnimating.value) return;
   isAnimating.value = true;
 
   const currentStep = Math.round(offset.value / itemSize.value);
   offset.value = (currentStep + 1) * itemSize.value;
+  markArrival(manual);
 
   setTimeout(() => {
     isAnimating.value = false;
@@ -152,6 +164,7 @@ const snapToNearest = () => {
   isAnimating.value = true;
 
   offset.value = Math.round(offset.value / itemSize.value) * itemSize.value;
+  markArrival(true);
 
   setTimeout(() => {
     isAnimating.value = false;
@@ -405,6 +418,8 @@ const getItemStyle = (index: number) => {
       ref="containerRef"
       class="tech-vertical-carousel-scene"
       :class="{ horizontal: isHorizontal }"
+      data-cursor-group=".carousel-item.is-center .technology-container"
+      data-cursor-group-strict
       :style="{
         // Якорь ленты задается инлайном из того же состояния, что и
         // математика трансформации: центрирование по главной оси
@@ -439,7 +454,7 @@ const getItemStyle = (index: number) => {
           v-for="(row, index) in displayRows"
           :key="row[0].uniqueId"
           class="carousel-item"
-          :class="{ horizontal: isHorizontal }"
+          :class="{ horizontal: isHorizontal, 'is-center': index === centerIndex }"
           :style="getItemStyle(index)"
         >
           <TechnologyItem
@@ -457,6 +472,8 @@ const getItemStyle = (index: number) => {
 </template>
 
 <style scoped lang="scss">
+@use "@style/_vars";
+
 .tech-vertical-carousel-wrapper {
   width: min-content;
   height: 150px; // Ровно 3 элемента по 50px

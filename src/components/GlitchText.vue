@@ -1,9 +1,19 @@
 <script setup lang="ts">
-defineProps<{
+import { useDecrypt } from "@/hook/useDecrypt.ts";
+
+const props = defineProps<{
   text: string;
   tag?: string;
   variant?: "very-large" | "large" | "medium" | "small";
+  chaotic?: boolean;
 }>();
+
+const { display, replay } = useDecrypt(
+  () => props.text,
+  props.chaotic
+    ? { duration: 1500, hoverDuration: 800, chaotic: true }
+    : { duration: 900 }
+);
 </script>
 
 <template>
@@ -11,9 +21,11 @@ defineProps<{
     :is="tag || 'div'"
     class="glitch-text"
     :class="variant || 'medium'"
-    :data-text="text"
+    :data-text="display"
+    @mouseenter="replay()"
   >
-    {{ text }}
+    <span class="sr-only">{{ text }}</span>
+    <span aria-hidden="true">{{ display }}</span>
   </component>
 </template>
 

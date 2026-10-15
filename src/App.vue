@@ -1,10 +1,19 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { nextTick, ref, watch } from "vue";
 import CyberNavbar from "@components/CyberNavbar.vue";
 import LoadingScreen from "@components/LoadingScreen.vue";
 import CyberFooter from "@components/CyberFooter.vue";
-import { playTransitionSound } from "@/utils/playTransitionSound.ts";
 import InitScreen from "@components/InitScreen.vue";
+import GlitchOverlay from "@components/GlitchOverlay.vue";
+import CyberCursor from "@components/CyberCursor.vue";
+import {
+  enableAmbient,
+  playStatic,
+  playTransitionSound
+} from "@/utils/synthSounds.ts";
+import { scrambleTextIn } from "@/utils/scrambleText.ts";
+import { useI18n } from "@/i18n";
+import { preferences } from "@/hook/usePreferences.ts";
 
 const SESSION_STORAGE_KEY = "session_initialized";
 
@@ -33,9 +42,18 @@ function shouldSkipInit(): boolean {
   return false;
 }
 
-const skipIntro = shouldSkipInit();
+const skipIntro = preferences.setupCompleted && shouldSkipInit();
 const isInit = ref(!skipIntro);
 const isLoading = ref(false);
+
+const { locale } = useI18n();
+watch(locale, async () => {
+  await nextTick();
+  scrambleTextIn(document.body);
+  playStatic();
+});
+
+if (skipIntro) enableAmbient();
 
 function handleInitFinished() {
   isInit.value = false;
@@ -44,6 +62,7 @@ function handleInitFinished() {
 
 function handleLoadingFinished() {
   isLoading.value = false;
+  enableAmbient();
   try {
     sessionStorage.setItem(SESSION_STORAGE_KEY, "true");
   } catch {
@@ -64,6 +83,7 @@ function handleLoadingFinished() {
     <div v-else class="app-container">
       <div class="grid-bg"></div>
       <div class="scanline"></div>
+      <GlitchOverlay />
 
       <header class="cyber-navbar">
         <CyberNavbar />
@@ -84,6 +104,8 @@ function handleLoadingFinished() {
       </footer>
     </div>
   </transition>
+
+  <CyberCursor />
 </template>
 
 <style lang="scss">

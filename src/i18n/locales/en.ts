@@ -8,8 +8,41 @@ export default {
     systemNavLinking: "SYSTEM_NAV_LINKING...",
     authGranted: "AUTH_REQ: GRANTED"
   },
+  settings: {
+    title: "CONFIG",
+    open: "Open settings",
+    menuSubtitle: "SYSTEM_CONFIG_LINKING...",
+    language: "Language",
+    theme: "Theme",
+    sound: "Sound",
+    volume: "Volume",
+    ambient: "Ambient",
+    motion: "Motion",
+    cursor: "Cursor",
+    on: "ON",
+    off: "OFF",
+    motionModes: {
+      full: "FULL",
+      reduced: "REDUCED"
+    },
+    languages: {
+      en: "English",
+      ru: "Русский"
+    }
+  },
+  theme: {
+    random: "RANDOM",
+    acid: "ACID",
+    neon: "NEON",
+    matrix: "MATRIX",
+    ice: "ICE",
+    amber: "AMBER",
+    blood: "BLOOD"
+  },
   init: {
     title: "SYSTEM.INIT",
+    setupTitle: "FIRST_BOOT.CONFIG",
+    setupHint: "Reduced motion removes flashes and glitches. Everything can be changed later in CONFIG.",
     button: "Initialize session!"
   },
   boot: {

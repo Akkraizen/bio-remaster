@@ -1,6 +1,7 @@
 @use "_fonts";
 @use "_animations";
 @use "_vars";
+@use "_themes";
 
 html {
   scrollbar-width: thin;
@@ -10,7 +11,7 @@ html {
 
 ::selection {
   background-color: vars.$accent-color;
-  color: #000000;
+  color: vars.$on-accent-color;
 }
 
 body {
@@ -18,6 +19,7 @@ body {
   padding: 0;
   background-color: vars.$bg-color;
   color: vars.$text-color;
+  transition: background-color 0.3s ease, color 0.3s ease;
   font-family: 'JetBrains Mono', monospace;
   overflow-x: hidden;
 }
@@ -75,4 +77,69 @@ h1, h2, h3 {
 
 h1 {
   font-size: 1.5rem;
+}
+
+.reveal:not(.revealed) {
+  opacity: 0;
+}
+
+.reveal.revealed {
+  animation: reveal-in 0.55s cubic-bezier(0.2, 0.7, 0.2, 1) backwards;
+  animation-delay: var(--reveal-delay, 0ms);
+}
+
+@keyframes reveal-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+    filter: brightness(1.8);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
+
+.reveal:not(.revealed) .outline-path.draw-in {
+  animation-play-state: paused;
+}
+
+@media (pointer: fine) {
+  :root[data-cursor="on"],
+  :root[data-cursor="on"] * {
+    cursor: none !important;
+  }
+}
+
+:root[data-motion="reduced"] {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    animation-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .glitch-enter-active,
+  .glitch-leave-active,
+  .mobile-menu-enter-active,
+  .mobile-menu-leave-active,
+  .settings-panel-enter-active,
+  .settings-panel-leave-active {
+    animation: none !important;
+    transition: opacity 0.2s ease !important;
+  }
+
+  .scanline,
+  .scanline-loader,
+  .glitch-text::before,
+  .glitch-text::after {
+    display: none !important;
+  }
+
+  .reveal:not(.revealed) {
+    opacity: 1;
+  }
 }

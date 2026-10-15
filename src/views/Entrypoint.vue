@@ -20,7 +20,7 @@ const quotes = computed(() => getQuotesForLocale(locale.value));
     />
 
     <section class="quotes-section">
-      <div class="quotes-grid">
+      <div class="quotes-grid" data-cursor-group=".cyber-quote-container">
         <CyberQuote
           v-for="item in quotes"
           :key="item.id"

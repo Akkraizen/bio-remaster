@@ -1,8 +1,18 @@
-$bg-color: #050505;
-$text-color: #f0f0f0;
-$accent-color: #c6ff33;
-$secondary-accent: #ff003c;
-$warning-color: #ff003c;
-$grid-color: rgba(198, 255, 51, 0.05);
+$bg-color: var(--c-bg);
+$text-color: var(--c-text);
+$accent-color: var(--c-accent);
+$secondary-accent: var(--c-secondary);
+$warning-color: var(--c-warning);
+$on-accent-color: var(--c-on-accent);
+$glitch-color-1: var(--c-glitch-1);
+$glitch-color-2: var(--c-glitch-2);
+$grid-color: var(--grid-color);
 $border-width: 2px;
 $corner-size: 15px;
+
+/// Color with opacity; works with runtime (CSS variable) colors unlike rgba()
+/// @param {Color} $color
+/// @param {Number} $opacity - 0..1
+@function alpha($color, $opacity) {
+  @return color-mix(in srgb, #{$color} #{$opacity * 100%}, transparent);
+}

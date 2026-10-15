@@ -19,7 +19,7 @@ const currentProjects = computed(() => getProjectsForLocale(locale.value));
       variant="medium"
     />
 
-    <div class="projects-list">
+    <div class="projects-list" data-cursor-group=".project-item">
       <Project
         v-for="project in currentProjects"
         :key="project.id"

@@ -4,6 +4,8 @@ import { useRouter } from "vue-router";
 import CyberButton from "@components/CyberButton.vue";
 import CyberCard from "@components/CyberCard.vue";
 import { useI18n } from "@/i18n";
+import DecryptText from "@components/DecryptText.vue";
+import { openExternal } from "@/utils/uiSounds.ts";
 
 import type { Project } from "@/model/project";
 
@@ -24,7 +26,7 @@ const sourceShape = computed(() => {
 
 const redirect = (event: Event, url?: string) => {
   event.stopPropagation();
-  if (url) window.location.href = url;
+  if (url) openExternal(url);
 };
 
 const goToDetail = () => {
@@ -39,7 +41,7 @@ const goToDetail = () => {
         <span class="project-id">#{{ props.id }}</span>
         <span class="status-badge">{{ t('projects.encrypted') }}</span>
       </div>
-      <h3>{{ props.name }}</h3>
+      <h3><DecryptText :text="props.name" /></h3>
     </template>
 
     <p class="description">
@@ -47,7 +49,7 @@ const goToDetail = () => {
     </p>
 
     <template #footer>
-      <div class="project-footer">
+      <div class="project-footer" data-cursor-group=".cyber-button-container">
         <CyberButton
           v-if="props.demo"
           @click="(e) => redirect(e, props.demo)"

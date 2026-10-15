@@ -124,8 +124,8 @@ const handleTestClick = (name: string) => {
             <CyberOutline
               :shape="shape"
               :corner-size="15"
-              background-color="rgba(198, 255, 51, 0.05)"
-              hover-background-color="rgba(198, 255, 51, 0.2)"
+              background-color="color-mix(in srgb, var(--c-accent) 5%, transparent)"
+              hover-background-color="color-mix(in srgb, var(--c-accent) 20%, transparent)"
             >
               <div class="outline-label">{{ shape }}</div>
             </CyberOutline>
@@ -157,8 +157,8 @@ const handleTestClick = (name: string) => {
 }
 
 .test-section {
-  background: rgba(vars.$accent-color, 0.02);
-  border: 1px solid rgba(vars.$accent-color, 0.2);
+  background: vars.alpha(vars.$accent-color, 0.02);
+  border: 1px solid vars.alpha(vars.$accent-color, 0.2);
   padding: 30px;
   position: relative;
   flex: 1 1 400px;

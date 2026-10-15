@@ -2,14 +2,14 @@
 import { computed, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import NavLink from "@components/NavLink.vue";
-import CyberBadge from "@components/CyberBadge.vue";
+import CyberSettings from "@components/CyberSettings.vue";
 import CyberOutline from "@components/CyberOutline.vue";
 import CyberHero from "@components/CyberHero.vue";
-import { playClickSound, playTransitionSound } from "@/utils/playTransitionSound.ts";
+import { playCloseSweep, playOpenSweep } from "@/utils/synthSounds.ts";
 import { useI18n } from "@/i18n";
 
 const route = useRoute();
-const { locale, toggleLocale, t } = useI18n();
+const { t } = useI18n();
 
 const isMenuOpen = ref(false);
 
@@ -18,11 +18,6 @@ const navLinks = computed(() => [
   { path: "/core/file", label: t("nav.file") },
   { path: "/core/projects", label: t("nav.projects") }
 ]);
-
-const handleBadgeClick = () => {
-  playClickSound();
-  toggleLocale();
-};
 
 const toggleMenu = () => {
   isMenuOpen.value = !isMenuOpen.value;
@@ -45,18 +40,15 @@ watch(
     <CyberOutline
       shape="bottom-corners-no-top"
       :corner-size="20"
-      backgroundColor="black"
-      hover-background-color="black"
+      backgroundColor="var(--c-bg)"
+      hover-background-color="var(--c-bg)"
+      :cursor-focus="false"
     >
-      <div class="cyber-navbar-main">
-        <CyberBadge
-          :text="locale.toUpperCase()"
-          type="status"
-          shape="diagonal-tr-bl"
-          active
-          interactive
-          @click="handleBadgeClick"
-        />
+      <div
+        class="cyber-navbar-main"
+        data-cursor-group=".cyber-badge, .router-link-container, .menu-toggle"
+      >
+        <CyberSettings />
 
         <div class="toggle-container">
           <CyberOutline shape="diagonal-tl-br" :corner-size="10">
@@ -90,8 +82,8 @@ watch(
 
     <transition
       name="mobile-menu"
-      @before-enter="playTransitionSound()"
-      @after-leave="playTransitionSound()"
+      @before-enter="playOpenSweep()"
+      @before-leave="playCloseSweep()"
     >
       <div v-if="isMenuOpen" class="mobile-menu">
         <div class="mobile-menu-content">
@@ -102,7 +94,7 @@ watch(
               variant="small"
             />
           </div>
-          <nav class="mobile-nav">
+          <nav class="mobile-nav" data-cursor-group=".router-link-container">
             <NavLink
               v-for="(link, index) in navLinks"
               :key="link.path"
@@ -217,7 +209,15 @@ watch(
   padding-bottom: 5px;
   font-size: 0.8rem;
   color: vars.$accent-color;
-  border-bottom: 1px solid rgba(vars.$accent-color, 0.3);
+  border-bottom: 1px solid vars.alpha(vars.$accent-color, 0.3);
+
+  :deep(.subtitle) {
+    font-size: 1.1rem;
+
+    @media (max-width: 370px) {
+      font-size: 0.9rem;
+    }
+  }
 }
 
 .mobile-nav {

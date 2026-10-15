@@ -2,10 +2,10 @@
 import { ref, computed, onMounted, onUnmounted } from "vue";
 import GlitchText from "@components/GlitchText.vue";
 import {
-  playTransitionSound,
   playProgressBarSound,
   stopProgressBarSound
 } from "@/utils/playTransitionSound.ts";
+import { playTransitionSound } from "@/utils/synthSounds.ts";
 import { useI18n, translations } from "@/i18n";
 
 const { locale, t } = useI18n();
@@ -127,7 +127,7 @@ onUnmounted(() => {
   width: 100%;
   height: 6px;
   @include mixins.glass-effect(vars.$accent-color, 0.1);
-  border: 1px solid rgba(vars.$accent-color, 0.3);
+  border: 1px solid vars.alpha(vars.$accent-color, 0.3);
   position: relative;
   overflow: hidden;
 }
@@ -157,7 +157,7 @@ onUnmounted(() => {
   height: 100%;
   pointer-events: none;
   @include mixins.glass-effect(vars.$accent-color, 0.05);
-  border: 1px solid rgba(vars.$accent-color, 0.1);
+  border: 1px solid vars.alpha(vars.$accent-color, 0.1);
 
   .decor-corner {
     position: absolute;
@@ -198,7 +198,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 2px;
-  background: rgba(vars.$accent-color, 0.2);
+  background: vars.alpha(vars.$accent-color, 0.2);
   opacity: 0.5;
   animation: scan 2s linear infinite;
 }

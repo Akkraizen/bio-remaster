@@ -10,7 +10,13 @@ defineProps<{
 
 <template>
   <section class="hero-section">
-    <GlitchText v-if="title" :text="title" tag="h1" :variant="variant" />
+    <GlitchText
+      v-if="title"
+      :text="title"
+      tag="h1"
+      :variant="variant"
+      chaotic
+    />
     <p v-if="subtitle" class="subtitle" :class="variant || 'medium'">
       {{ subtitle }}
     </p>

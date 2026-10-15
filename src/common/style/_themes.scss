@@ -1,0 +1,85 @@
+$default-theme: acid;
+
+$themes: (
+  acid: (
+    bg: #050505,
+    text: #f0f0f0,
+    accent: #c6ff33,
+    secondary: #ff003c,
+    warning: #ff003c,
+    on-accent: #000000,
+    glitch-1: #ff00c1,
+    glitch-2: #00fff9
+  ),
+  neon: (
+    bg: #0a0612,
+    text: #f2e9ff,
+    accent: #ff2a6d,
+    secondary: #05d9e8,
+    warning: #ffd319,
+    on-accent: #0a0612,
+    glitch-1: #05d9e8,
+    glitch-2: #ffd319
+  ),
+  matrix: (
+    bg: #020a04,
+    text: #d6ffe0,
+    accent: #00ff66,
+    secondary: #00e5ff,
+    warning: #ff3b3b,
+    on-accent: #000000,
+    glitch-1: #ff3b3b,
+    glitch-2: #00e5ff
+  ),
+  ice: (
+    bg: #03080f,
+    text: #e6f4ff,
+    accent: #00e5ff,
+    secondary: #ff4ecd,
+    warning: #ff3355,
+    on-accent: #000000,
+    glitch-1: #ff4ecd,
+    glitch-2: #7cffcb
+  ),
+  amber: (
+    bg: #0c0700,
+    text: #ffe9c4,
+    accent: #ffb000,
+    secondary: #ff5f1f,
+    warning: #ff3b30,
+    on-accent: #000000,
+    glitch-1: #ff5f1f,
+    glitch-2: #fff3a0
+  ),
+  blood: (
+    bg: #080202,
+    text: #f5e6e6,
+    accent: #ff1e3c,
+    secondary: #ff8a00,
+    warning: #ffd400,
+    on-accent: #000000,
+    glitch-1: #ff8a00,
+    glitch-2: #ffffff
+  )
+);
+
+@each $name, $tokens in $themes {
+  $selector: '[data-theme="#{$name}"]';
+  @if $name == $default-theme {
+    $selector: ":root, #{$selector}";
+  }
+
+  #{$selector} {
+    @each $key, $value in $tokens {
+      --c-#{$key}: #{$value};
+    }
+  }
+}
+
+:root,
+[data-theme] {
+  color-scheme: dark;
+  --accent-color: var(--c-accent);
+  --warning-color: var(--c-warning);
+  --grid-color: color-mix(in srgb, var(--c-accent) 5%, transparent);
+}

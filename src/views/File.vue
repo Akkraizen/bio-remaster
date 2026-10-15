@@ -10,53 +10,81 @@ import Typed from "typed.js";
 import { useVersion } from "@/hook/useVersion";
 import { useResponsive } from "@/hook/useResponsive";
 import { useI18n, translations } from "@/i18n";
+import DecryptText from "@components/DecryptText.vue";
+import CountUp from "@components/CountUp.vue";
+import { reducedMotion } from "@/hook/usePreferences.ts";
+import { playTypeTick } from "@/utils/synthSounds.ts";
+import { scrambleTextIn } from "@/utils/scrambleText.ts";
 
 const version = useVersion();
 const { locale, t } = useI18n();
-const years = ref(0);
 const typedElement = ref<HTMLElement | null>(null);
+// Typed.js removes its cursor on destroy; this one replaces it after a language switch
+const showStaticCursor = ref(false);
 
 let typedInstance: Typed | null = null;
+let typingObserver: MutationObserver | null = null;
 const { getResponsiveShape } = useResponsive();
 
 const nicknames = computed(() => translations[locale.value].file.nicknames);
+
+const ageValue = computed(() => Number(t("file.ageValue")));
+
+// Typed.js has no per-character hook, so typing is detected through DOM mutations
+const observeTyping = (element: HTMLElement) => {
+  typingObserver?.disconnect();
+  typingObserver = new MutationObserver(() => playTypeTick());
+  typingObserver.observe(element, { childList: true, characterData: true, subtree: true });
+};
 
 const initTyped = () => {
   if (!typedElement.value) return;
 
   typedInstance?.destroy();
+  typedInstance = null;
+  showStaticCursor.value = false;
 
+  // Reduced motion: show the whole text at once
+  if (reducedMotion()) {
+    typingObserver?.disconnect();
+    typedElement.value.innerHTML = translations[locale.value].file.biographyText;
+    return;
+  }
+
+  observeTyping(typedElement.value);
   typedInstance = new Typed(typedElement.value, {
     strings: [translations[locale.value].file.biographyText],
     typeSpeed: 20,
     showCursor: true,
     cursorChar: "_",
-    contentType: "html"
+    contentType: "html",
+    onComplete: () => typingObserver?.disconnect()
   });
 };
 
-const countYears = () => {
-  let intId = setInterval(() => {
-    if (years.value < 4) {
-      years.value += 1;
-    } else {
-      clearInterval(intId);
-      return;
-    }
-  }, 250);
+onMounted(() => {
+  initTyped();
+});
+
+// Language switch: the new text appears at once and decrypts chaotically, like the rest of the page
+const decryptBiography = () => {
+  const element = typedElement.value;
+  if (!element || reducedMotion()) return initTyped();
+
+  typedInstance?.destroy();
+  typedInstance = null;
+  typingObserver?.disconnect();
+
+  element.innerHTML = translations[locale.value].file.biographyText;
+  showStaticCursor.value = true;
+  scrambleTextIn(element, 1300);
 };
 
-onMounted(() => {
-  countYears();
-  initTyped();
-});
-
-watch(locale, () => {
-  initTyped();
-});
+watch(locale, decryptBiography);
 
 onUnmounted(() => {
   typedInstance?.destroy();
+  typingObserver?.disconnect();
 });
 
 const calculateStackCorners = getResponsiveShape({
@@ -106,8 +134,17 @@ const calculateExpCorners = getResponsiveShape({
 
         <section class="bio-section">
           <div class="bio-text-container">
-            <h1>{{ t('file.biographyTitle') }}</h1>
-            <p class="bio-text"><span ref="typedElement"></span></p>
+            <h1><DecryptText :text="t('file.biographyTitle')" /></h1>
+            <!-- Excluded from the page-wide scramble: it runs its own (decryptBiography) -->
+            <p class="bio-text" data-no-scramble>
+              <span ref="typedElement"></span
+              ><span
+                v-if="showStaticCursor"
+                class="typed-cursor typed-cursor--blink"
+                aria-hidden="true"
+                >_</span
+              >
+            </p>
           </div>
         </section>
 
@@ -118,7 +155,7 @@ const calculateExpCorners = getResponsiveShape({
         </section>
       </div>
 
-      <div class="cards-group">
+      <div class="cards-group" data-cursor-group=".cyber-card-container">
         <section class="nicknames-section">
           <CyberCard :title="t('file.nicknamesTitle')" :shape="calculateNicknamesCorners">
             <ul class="nicknames-list">
@@ -131,7 +168,7 @@ const calculateExpCorners = getResponsiveShape({
 
         <section class="contact-section">
           <CyberCard :title="t('file.linksTitle')" :shape="calculateLinksCorners">
-            <div class="contact-grid">
+            <div class="contact-grid" data-cursor-group=".social-square">
               <a
                 v-for="social in socials"
                 :key="social.id"
@@ -165,7 +202,10 @@ const calculateExpCorners = getResponsiveShape({
                     <h3 class="table-header">{{ t('file.age') }}</h3>
                   </td>
                   <td class="table-ceil">
-                    <a>{{ t('file.ageValue') }}</a>
+                    <a>
+                      <CountUp v-if="!Number.isNaN(ageValue)" :value="ageValue" />
+                      <template v-else>{{ t('file.ageValue') }}</template>
+                    </a>
                   </td>
                 </tr>
                 <tr>
@@ -192,7 +232,7 @@ const calculateExpCorners = getResponsiveShape({
             :shape="calculateExpCorners"
           >
             <div class="exp-container">
-              <h3>{{ years }}</h3>
+              <h3><CountUp :value="4" :duration="1000" /></h3>
               <p v-html="t('file.yearsOfExperience')"></p>
             </div>
           </CyberCard>

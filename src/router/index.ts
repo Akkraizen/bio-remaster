@@ -5,7 +5,7 @@ import Projects from "@views/Projects.vue";
 import ProjectDetail from "@views/ProjectDetail.vue";
 import Test from "@views/Test.vue";
 import NotFound from "@views/NotFound.vue";
-import { playTransitionSound } from "@/utils/playTransitionSound.ts";
+import { playTransitionSound } from "@/utils/synthSounds.ts";
 
 const routes = [
   {
@@ -36,7 +36,7 @@ const routes = [
     name: "Core.Projects",
     component: Projects,
     meta: {
-      title: "List | Akkraizen",
+      title: "Projects | Akkraizen",
       description: "Portfolio of digital experiments and projects."
     }
   },

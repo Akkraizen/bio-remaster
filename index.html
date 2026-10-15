@@ -13,8 +13,6 @@
     <!-- Preload -->
     <link rel="preload" href="/audio/click.wav" as="audio" type="audio/wav">
     <link rel="preload" href="/audio/progress-bar.wav" as="audio" type="audio/wav">
-    <link rel="preload" href="/audio/transition.wav" as="audio" type="audio/wav">
-    <link rel="preload" href="/logo.svg" as="image" type="image/svg+xml">
     <link rel="preload" href="/avatar.jpg" as="image" type="image/jpeg">
 
     <!-- Open Graph / Facebook -->
@@ -32,6 +30,50 @@
     <meta property="twitter:image" content="https://akkraizen.dev/og-image.png" />
 
     <meta name="theme-color" content="#c6ff33" />
+
+    <!--
+      Boot script: applies theme, tab icon and motion mode before first paint,
+      so the default theme never flashes. The config (theme list, storage keys,
+      logo path) is injected from src/config/boot.ts by vite.config.ts.
+    -->
+    <script>
+      (function (config) {
+        var root = document.documentElement;
+        var themes = config.themes;
+        var keys = config.storageKeys;
+
+        var read = function (key) {
+          try {
+            return localStorage.getItem(key);
+          } catch (e) {
+            return null;
+          }
+        };
+
+        // Theme: a saved one, or random without repeating the previous (mirrors src/hook/useTheme.ts)
+        var theme = read(keys.themePreference);
+        if (themes.indexOf(theme) === -1) {
+          var last = read(keys.lastTheme);
+          var pool = themes.filter(function (name) { return name !== last; });
+          theme = pool[Math.floor(Math.random() * pool.length)];
+        }
+        root.dataset.theme = theme;
+
+        var icon = document.querySelector('link[rel="icon"]');
+        if (icon) icon.setAttribute("href", config.logoPath.prefix + theme + config.logoPath.suffix);
+
+        // Motion mode: saved, or the OS setting (mirrors src/hook/usePreferences.ts)
+        var motion = null;
+        try {
+          motion = JSON.parse(read(keys.preferences) || "{}").motion;
+        } catch (e) {}
+        if (motion !== "full" && motion !== "reduced") {
+          var reduce = window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          motion = reduce ? "reduced" : "full";
+        }
+        root.dataset.motion = motion;
+      })(__BOOT_CONFIG__);
+    </script>
   </head>
   <body>
     <div id="app"></div>

@@ -33,7 +33,7 @@ const { containerRef, getPath, getClipPath } = useCyberShape(() => ({
   position: relative;
   width: 50px;
   height: 50px;
-  background: rgba(vars.$accent-color, 0.05);
+  background: vars.alpha(vars.$accent-color, 0.05);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -44,7 +44,7 @@ const { containerRef, getPath, getClipPath } = useCyberShape(() => ({
   &:hover {
     background: vars.$accent-color;
     transform: translateY(-2px);
-    color: #000;
+    color: vars.$on-accent-color;
 
     .social-icon {
       filter: brightness(0);

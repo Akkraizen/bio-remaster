@@ -8,8 +8,41 @@ export default {
     systemNavLinking: "SYSTEM_NAV_LINKING...",
     authGranted: "AUTH_REQ: GRANTED"
   },
+  settings: {
+    title: "CONFIG",
+    open: "Открыть настройки",
+    menuSubtitle: "SYSTEM_CONFIG_LINKING...",
+    language: "Language",
+    theme: "Theme",
+    sound: "Sound",
+    volume: "Volume",
+    ambient: "Ambient",
+    motion: "Motion",
+    cursor: "Cursor",
+    on: "ВКЛ",
+    off: "ВЫКЛ",
+    motionModes: {
+      full: "ПОЛНОЕ",
+      reduced: "УМЕНЬШЕННОЕ"
+    },
+    languages: {
+      en: "English",
+      ru: "Русский"
+    }
+  },
+  theme: {
+    random: "СЛУЧАЙНАЯ",
+    acid: "КИСЛОТА",
+    neon: "НЕОН",
+    matrix: "МАТРИЦА",
+    ice: "ЛЁД",
+    amber: "ЯНТАРЬ",
+    blood: "КРОВЬ"
+  },
   init: {
     title: "SYSTEM.INIT",
+    setupTitle: "FIRST_BOOT.CONFIG",
+    setupHint: "Уменьшенное движение убирает вспышки и глитчи. Всё можно изменить позже в CONFIG.",
     button: "Initialize session!"
   },
   boot: {

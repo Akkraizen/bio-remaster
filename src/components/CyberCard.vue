@@ -1,6 +1,9 @@
 <script setup lang="ts">
 import CyberOutline from "@components/CyberOutline.vue";
 import type { CyberShape } from "@/hook/useCyberShape.ts";
+import DecryptText from "@components/DecryptText.vue";
+import { vReveal } from "@/directives/reveal.ts";
+import { playAlarm } from "@/utils/synthSounds.ts";
 
 interface Props {
   title?: string;
@@ -12,17 +15,25 @@ interface Props {
   shape?: CyberShape;
 }
 
-withDefaults(defineProps<Props>(), {
+const props = withDefaults(defineProps<Props>(), {
   borderColor: "var(--accent-color, #c6ff33)",
   borderWidth: 2,
   cornerSize: 20,
   backgroundColor: "rgba(0, 0, 0, 0)",
   shape: "default"
 });
+
+const onReveal = () => {
+  if (props.isWarning) playAlarm(true);
+};
 </script>
 
 <template>
-  <div class="cyber-card-container" :class="{ 'warning-card': isWarning }">
+  <div
+    v-reveal="onReveal"
+    class="cyber-card-container"
+    :class="{ 'warning-card': isWarning }"
+  >
     <CyberOutline
       :shape="shape"
       :corner-size="cornerSize"
@@ -33,7 +44,7 @@ withDefaults(defineProps<Props>(), {
       <div class="cyber-card-content-container">
         <div v-if="title || $slots.header" class="card-header">
           <slot name="header">
-            <h3 :class="{ blink: isWarning }">{{ title }}</h3>
+            <h3 :class="{ blink: isWarning }"><DecryptText :text="title ?? ''" /></h3>
           </slot>
         </div>
 

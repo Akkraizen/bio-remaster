@@ -13,6 +13,10 @@ interface Props {
   cornerSize?: number;
   backgroundColor?: string;
   fullWidth?: boolean;
+  /** Selected state, e.g. for an option in a group */
+  active?: boolean;
+  /** Skip the built-in click sound (when the caller plays its own) */
+  silent?: boolean;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -23,7 +27,9 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   isWarning: false,
   variant: "outline",
-  fullWidth: false
+  fullWidth: false,
+  active: false,
+  silent: false
 });
 
 const playSelectSound = () => {
@@ -36,7 +42,7 @@ const emit = defineEmits<{
 
 const handleClick = (event: MouseEvent) => {
   if (!props.disabled) {
-    playSelectSound();
+    if (!props.silent) playSelectSound();
     emit("click", event);
   }
 };
@@ -57,9 +63,11 @@ const handleClick = (event: MouseEvent) => {
           `variant-${variant}`,
           {
             'is-disabled': disabled,
-            'is-warning': isWarning
+            'is-warning': isWarning,
+            'is-active': active
           }
         ]"
+        :aria-pressed="active || undefined"
         @click="handleClick"
       >
         <span class="button-content">
@@ -143,6 +151,11 @@ const handleClick = (event: MouseEvent) => {
       color: vars.$bg-color;
       @include mixins.neon-glow(vars.$accent-color, 25px, 1);
     }
+  }
+
+  &.is-active:not(.is-warning) {
+    background: vars.$accent-color;
+    color: vars.$bg-color;
   }
 
   &:active:not(.is-disabled) {

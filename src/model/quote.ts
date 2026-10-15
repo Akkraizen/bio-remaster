@@ -57,7 +57,7 @@ export const localizedQuotes: LocalizedQuoteItem[] = [
     },
     ru: {
       quote: "Так долго я стремился к вершине совершенства.",
-      author: "Исаак Нетеро",
+      author: "Айзек Нетеро",
       source: "Hunter x Hunter"
     },
     responsiveShape: {

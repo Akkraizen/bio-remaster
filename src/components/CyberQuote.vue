@@ -3,6 +3,8 @@ import { computed } from "vue";
 import CyberOutline from "@components/CyberOutline.vue";
 import type { CyberShape, CyberCornerSizesConfig } from "@/hook/useCyberShape.ts";
 import { useResponsive, type ResponsiveShapeOption } from "@/hook/useResponsive";
+import { vReveal } from "@/directives/reveal.ts";
+import { playAlarm } from "@/utils/synthSounds.ts";
 
 interface Props {
   quote?: string;
@@ -34,10 +36,18 @@ const effectiveShape = computed<CyberShape>(() => {
   }
   return props.shape;
 });
+
+const onReveal = () => {
+  if (props.isWarning) playAlarm(true);
+};
 </script>
 
 <template>
-  <div class="cyber-quote-container" :class="{ 'warning-quote': isWarning }">
+  <div
+    v-reveal="onReveal"
+    class="cyber-quote-container"
+    :class="{ 'warning-quote': isWarning }"
+  >
     <CyberOutline
       :shape="effectiveShape"
       :corner-size="cornerSize"
@@ -47,7 +57,6 @@ const effectiveShape = computed<CyberShape>(() => {
     >
       <blockquote class="cyber-quote-content">
         <div class="quote-tag">
-          <span class="tag-marker">//</span>
           <span class="tag-label">QUOTE.LOG</span>
         </div>
 
@@ -108,13 +117,10 @@ const effectiveShape = computed<CyberShape>(() => {
   letter-spacing: 2px;
   color: vars.$accent-color;
   margin-bottom: 0.75rem;
+  padding-left: 1rem;
+  border-left: 2px solid vars.$warning-color;
   opacity: 0.8;
   @include mixins.font-mono;
-
-  .tag-marker {
-    color: vars.$warning-color;
-    font-weight: bold;
-  }
 }
 
 .quote-body {
@@ -152,7 +158,7 @@ const effectiveShape = computed<CyberShape>(() => {
 .quote-footer {
   margin-top: 1rem;
   padding-top: 0.75rem;
-  border-top: 1px solid rgba(vars.$accent-color, 0.2);
+  border-top: 1px solid vars.alpha(vars.$accent-color, 0.2);
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -175,7 +181,7 @@ const effectiveShape = computed<CyberShape>(() => {
   }
 
   .quote-source {
-    color: rgba(vars.$text-color, 0.7);
+    color: vars.alpha(vars.$text-color, 0.7);
     font-size: 0.75rem;
   }
 }
@@ -196,7 +202,7 @@ const effectiveShape = computed<CyberShape>(() => {
   }
 
   .quote-footer {
-    border-top-color: rgba(vars.$warning-color, 0.2);
+    border-top-color: vars.alpha(vars.$warning-color, 0.2);
   }
 }
 </style>

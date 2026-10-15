@@ -1,15 +1,24 @@
-import { ref } from "vue";
+import { ref, watch } from "vue";
+import { preferences } from "@/hook/usePreferences.ts";
 
 export const soundsLoaded = ref(false);
 export const soundsLoading = ref(false);
 export const soundsError = ref(false);
 
-const SOUND_EFFECTS_VOLUME = 0.15;
+// Gain at the default volume level (0.5); scaled by the user's volume preference
+const BASE_SOUND_EFFECTS_VOLUME = 0.15;
+
+/** Effective output gain, 0 when sound is disabled */
+export function getEffectiveVolume(): number {
+  if (!preferences.soundEnabled) return 0;
+  return BASE_SOUND_EFFECTS_VOLUME * preferences.volume * 2;
+}
+
+export const isSoundEnabled = () => preferences.soundEnabled;
 
 const SOUND_URLS = {
   click: "/audio/click.wav",
-  progressBar: "/audio/progress-bar.wav",
-  transition: "/audio/transition.wav"
+  progressBar: "/audio/progress-bar.wav"
 } as const;
 
 export type SoundKey = keyof typeof SOUND_URLS;
@@ -33,14 +42,41 @@ function getAudioContext(): AudioContext | null {
       audioContext = new AudioContextClass();
 
       secondaryAudioBus = audioContext.createGain();
-      secondaryAudioBus.gain.value = SOUND_EFFECTS_VOLUME;
+      secondaryAudioBus.gain.value = getEffectiveVolume();
       secondaryAudioBus.connect(audioContext.destination);
     }
   }
   return audioContext;
 }
 
-let isTransitionPlaying = false;
+/**
+ * Shared output for synthesized effects (see synthSounds.ts), already volume-scaled.
+ * Returns null when Web Audio is unavailable.
+ */
+export function getSfxOutput(): { ctx: AudioContext; bus: GainNode } | null {
+  const ctx = getAudioContext();
+  if (!ctx || !secondaryAudioBus) return null;
+  if (ctx.state === "suspended") ctx.resume().catch(() => {});
+  return { ctx, bus: secondaryAudioBus };
+}
+
+watch(
+  () => [preferences.soundEnabled, preferences.volume],
+  () => {
+    if (audioContext && secondaryAudioBus)
+      secondaryAudioBus.gain.setTargetAtTime(getEffectiveVolume(), audioContext.currentTime, 0.02);
+    if (!preferences.soundEnabled) stopProgressBarSound();
+  }
+);
+
+if (typeof window !== "undefined") {
+  const resume = () => {
+    if (audioContext?.state === "suspended") audioContext.resume().catch(() => {});
+  };
+  window.addEventListener("pointerdown", resume, { passive: true });
+  window.addEventListener("keydown", resume);
+}
+
 let progressBarAudio: HTMLAudioElement | null = null;
 let progressBarSource: AudioBufferSourceNode | null = null;
 
@@ -71,7 +107,7 @@ export async function preloadSounds(): Promise<boolean> {
 
       const audioEl = new Audio(url);
       audioEl.preload = "auto";
-      audioEl.volume = SOUND_EFFECTS_VOLUME;
+      audioEl.volume = BASE_SOUND_EFFECTS_VOLUME;
       fallbackAudioTemplates.set(key, audioEl);
     });
 
@@ -95,26 +131,9 @@ export function playClickSound() {
   playSecondarySound("click");
 }
 
-export function playTransitionSound() {
-  if (isTransitionPlaying) {
-    return;
-  }
-  isTransitionPlaying = true;
-
-  const durationMs = playSecondarySound("transition", () => {
-    isTransitionPlaying = false;
-  });
-
-  setTimeout(() => {
-    isTransitionPlaying = false;
-  }, durationMs > 0 ? durationMs + 50 : 1000);
-}
-
-/**
- * Plays a loop sound on an isolated secondary audio stream node.
- */
 export function playProgressBarSound() {
   stopProgressBarSound();
+  if (!isSoundEnabled()) return;
   const ctx = getAudioContext();
   const buffer = audioBuffers.get("progressBar");
 
@@ -142,7 +161,7 @@ export function playProgressBarSound() {
   const template = fallbackAudioTemplates.get("progressBar");
   const fallback = template ? (template.cloneNode(true) as HTMLAudioElement) : new Audio(SOUND_URLS.progressBar);
   fallback.loop = true;
-  fallback.volume = SOUND_EFFECTS_VOLUME;
+  fallback.volume = Math.min(1, getEffectiveVolume());
   fallback.currentTime = 0;
   fallback.play().catch(() => {});
   progressBarAudio = fallback;
@@ -170,6 +189,11 @@ export function stopProgressBarSound() {
  * preserving the main audio stream uninterrupted.
  */
 export function playSecondarySound(key: SoundKey, onEnded?: () => void): number {
+  if (!isSoundEnabled()) {
+    if (onEnded) setTimeout(onEnded, 0);
+    return 0;
+  }
+
   const ctx = getAudioContext();
   const buffer = audioBuffers.get(key);
 
@@ -201,7 +225,7 @@ export function playSecondarySound(key: SoundKey, onEnded?: () => void): number 
   // Fallback: Create isolated audio stream clone to avoid interrupting other streams
   const template = fallbackAudioTemplates.get(key);
   const fallback = template ? (template.cloneNode(true) as HTMLAudioElement) : new Audio(SOUND_URLS[key]);
-  fallback.volume = SOUND_EFFECTS_VOLUME;
+  fallback.volume = Math.min(1, getEffectiveVolume());
   fallback.currentTime = 0;
   
   if (onEnded) {

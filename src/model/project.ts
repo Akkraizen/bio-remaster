@@ -176,6 +176,23 @@ export const rawProjects: LocalizedProjectItem[] = [
     },
     source: "https://github.com/Akkraizen/zenit-va",
     stack: ["python", "git"]
+  },
+  {
+    id: "009",
+    name: "VIO",
+    en: {
+      description: "Client-side URL shortener, written on TypeScript and Vue.js.",
+      fullDescription:
+        "VIO is a fast and lightweight URL shortening service that runs entirely in the browser without a backend. It generates compact 8-character Base62 links, shows an interactive redirect screen with a 3-second countdown, and keeps a history of the last 20 links in localStorage. A rewrite of my earlier project k-ls."
+    },
+    ru: {
+      description: "Клиентский сервис сокращения ссылок на TypeScript и Vue.js.",
+      fullDescription:
+        "VIO — быстрый и лёгкий сервис сокращения ссылок, работающий полностью в браузере без бэкенда. Генерирует компактные 8-символьные Base62-ссылки, показывает интерактивный экран перенаправления с 3-секундным отсчётом и хранит историю последних 20 ссылок в localStorage. Переписанная версия моего проекта k-ls."
+    },
+    source: "https://github.com/Akkraizen/vio",
+    demo: "https://vio.akkraizen.dev",
+    stack: ["ts", "vue", "git"]
   }
 ];
 
