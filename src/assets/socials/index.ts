@@ -38,7 +38,7 @@ const socials: Record<string, Social> = {
   twitch: {
     id: 4,
     name: "Twitch",
-    link: "https://www.twitch.tv/k1ngchev",
+    link: "https://www.twitch.tv/akkraizen",
     icon: twitchSvg
   },
   telegram: {
@@ -56,13 +56,13 @@ const socials: Record<string, Social> = {
   lichess: {
     id: 7,
     name: "Lichess",
-    link: "https://lichess.org/@/TheKiNgchev",
+    link: "https://lichess.org/@/Akkraizen",
     icon: lichessSvg
   },
   chessdotcom: {
     id: 8,
     name: "Chess.com",
-    link: "https://www.chess.com/member/TheKiNgchev",
+    link: "https://www.chess.com/member/Akkraizen",
     icon: chessdotcomSvg
   },
   codeforces: {
