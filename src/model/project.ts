@@ -3,6 +3,8 @@ import hisokaMorrowImg from "@assets/projects/HisokaMorrowBot.jpg";
 import linariBotImg from "@assets/projects/LinariBot.jpg";
 import akhsImg from "@assets/projects/AKHS.jpg";
 import reverseImg from "@assets/projects/Reverse.jpg";
+import berillImg from "@assets/projects/Berill.png";
+import wavedotImg from "@assets/projects/Wavedot.png";
 import type { Locale } from "@/i18n";
 
 export interface Project {
@@ -36,6 +38,46 @@ export interface LocalizedProjectItem {
 export const rawProjects: LocalizedProjectItem[] = [
   {
     id: "001",
+    name: "Berill",
+    en: {
+      description:
+        "Local-first personal workspace for Android and Windows, written on Kotlin Multiplatform.",
+      fullDescription:
+        "Berill is an all-in-one personal workspace that grew out of my Obsidian vault: notes with a live Markdown editor, habits, planner, reading and watching diaries, finances, study, workouts and more, each as a plugin. It works fully offline on top of SQLite and syncs through my own Ktor + PostgreSQL server with per-field hybrid logical clocks, so devices merge changes without conflicts. Sync can be end-to-end encrypted, and third-party plugins run in a sandboxed process."
+    },
+    ru: {
+      description:
+        "Local-first личное рабочее пространство для Android и Windows на Kotlin Multiplatform.",
+      fullDescription:
+        "Berill — приложение «всё в одном», выросшее из моего хранилища Obsidian: заметки с живым Markdown-редактором, привычки, планировщик, дневники чтения и просмотров, финансы, учёба, тренировки и другое — каждый раздел оформлен плагином. Работает полностью офлайн поверх SQLite и синхронизируется через собственный сервер на Ktor и PostgreSQL: у каждого поля своя метка гибридных логических часов, поэтому устройства сливают изменения без конфликтов. Синхронизацию можно сквозно зашифровать, а сторонние плагины работают в изолированном процессе."
+    },
+    source: "https://github.com/Akkraizen/Berill",
+    demo: "https://berill.space",
+    image: berillImg,
+    stack: ["kotlin", "gradle", "docker", "git"]
+  },
+  {
+    id: "002",
+    name: "Wavedot",
+    en: {
+      description:
+        "Cross-platform music player with a plugin system, written on Kotlin Multiplatform.",
+      fullDescription:
+        "Wavedot is a music player for desktop and Android that brings local files and streaming services into one library. Every source is a plugin behind a single data contract: Yandex Music, Subsonic/Navidrome servers, Audius, internet radio and LRCLIB lyrics. Desktop playback decodes through FFmpeg, Android uses Media3, and favorites and playlists sync through a self-hosted hub. Open source under GPLv3."
+    },
+    ru: {
+      description:
+        "Кроссплатформенный музыкальный плеер с системой плагинов на Kotlin Multiplatform.",
+      fullDescription:
+        "Wavedot — музыкальный плеер для ПК и Android, который собирает локальные файлы и стриминговые сервисы в одну библиотеку. Каждый источник — плагин за единым контрактом данных: Яндекс Музыка, серверы Subsonic/Navidrome, Audius, интернет-радио и тексты песен из LRCLIB. На ПК звук декодируется через FFmpeg, на Android — через Media3, а избранное и плейлисты синхронизируются через собственный сервер. Открытый код под лицензией GPLv3."
+    },
+    source: "https://github.com/Akkraizen/Wavedot",
+    demo: "https://wavedot.space",
+    image: wavedotImg,
+    stack: ["kotlin", "gradle", "docker", "git"]
+  },
+  {
+    id: "003",
     name: "SJ",
     en: {
       description: "Service that uses Tinder-like mechanism for job hunting.",
@@ -50,44 +92,6 @@ export const rawProjects: LocalizedProjectItem[] = [
     demo: "https://swapjob.ru",
     image: sjImg,
     stack: ["docker", "ts", "git", "python"]
-  },
-  {
-    id: "002",
-    name: "Hisoka Morrow Bot",
-    en: {
-      description:
-        "Multifunctional Discord bot stylized as Hisoka Morrow from Hunter x Hunter. Bot was written on Kotlin.",
-      fullDescription:
-        "A sophisticated Discord bot themed after the enigmatic character Hisoka Morrow. Developed using Kotlin and the Kord library, it features interactive games, moderation tools, and role-play commands, all delivered with Hisoka's signature personality."
-    },
-    ru: {
-      description:
-        "Многофункциональный Discord-бот, стилизованный под Хисоку Мороу из Hunter x Hunter. Написан на Kotlin.",
-      fullDescription:
-        "Продвинутый Discord-бот в стилистике персонажа Хисока Мороу. Разработан на Kotlin с использованием библиотеки Kord. Включает интерактивные мини-игры, инструменты модерации и ролевые команды с фирменным стилем персонажа."
-    },
-    source: "https://github.com/Akkraizen/Hisoka",
-    demo: "https://discord.com/oauth2/authorize?client_id=1271073974356279396&permissions=8&integration_type=0&scope=bot",
-    image: hisokaMorrowImg,
-    stack: ["kotlin", "gradle", "docker", "git"]
-  },
-  {
-    id: "003",
-    name: "LinariBot",
-    en: {
-      description: "Telegram bot for Linari community.",
-      fullDescription:
-        "Custom-built Telegram bot specifically designed for the Linari community. It manages group interactions, provides utility and moderation commands."
-    },
-    ru: {
-      description: "Telegram-бот для сообщества Linari.",
-      fullDescription:
-        "Специализированный Telegram-бот, созданный для сообщества Linari. Управляет групповыми взаимодействиями, предоставляет утилиты и команды модерации."
-    },
-    source: "https://github.com/Akkraizen/linari-bot",
-    demo: "https://t.me/linarime_chat",
-    image: linariBotImg,
-    stack: ["python", "git"]
   },
   {
     id: "004",
@@ -110,6 +114,43 @@ export const rawProjects: LocalizedProjectItem[] = [
   },
   {
     id: "005",
+    name: "Hisoka Morrow Bot",
+    en: {
+      description:
+        "Multifunctional Discord bot stylized as Hisoka Morrow from Hunter x Hunter. Bot was written on Kotlin.",
+      fullDescription:
+        "A sophisticated Discord bot themed after the enigmatic character Hisoka Morrow. Developed using Kotlin and the Kord library, it features interactive games, moderation tools, and role-play commands, all delivered with Hisoka's signature personality."
+    },
+    ru: {
+      description:
+        "Многофункциональный Discord-бот, стилизованный под Хисоку Мороу из Hunter x Hunter. Написан на Kotlin.",
+      fullDescription:
+        "Продвинутый Discord-бот в стилистике персонажа Хисока Мороу. Разработан на Kotlin с использованием библиотеки Kord. Включает интерактивные мини-игры, инструменты модерации и ролевые команды с фирменным стилем персонажа."
+    },
+    source: "https://github.com/Akkraizen/Hisoka",
+    demo: "https://discord.com/oauth2/authorize?client_id=1271073974356279396&permissions=8&integration_type=0&scope=bot",
+    image: hisokaMorrowImg,
+    stack: ["kotlin", "gradle", "docker", "git"]
+  },
+  {
+    id: "006",
+    name: "VIO",
+    en: {
+      description: "Client-side URL shortener, written on TypeScript and Vue.js.",
+      fullDescription:
+        "VIO is a fast and lightweight URL shortening service that runs entirely in the browser without a backend. It generates compact 8-character Base62 links, shows an interactive redirect screen with a 3-second countdown, and keeps a history of the last 20 links in localStorage. A rewrite of my earlier project k-ls."
+    },
+    ru: {
+      description: "Клиентский сервис сокращения ссылок на TypeScript и Vue.js.",
+      fullDescription:
+        "VIO — быстрый и лёгкий сервис сокращения ссылок, работающий полностью в браузере без бэкенда. Генерирует компактные 8-символьные Base62-ссылки, показывает интерактивный экран перенаправления с 3-секундным отсчётом и хранит историю последних 20 ссылок в localStorage. Переписанная версия моего проекта k-ls."
+    },
+    source: "https://github.com/Akkraizen/vio",
+    demo: "https://vio.akkraizen.dev",
+    stack: ["ts", "vue", "git"]
+  },
+  {
+    id: "007",
     name: "Reverse Rewrite",
     en: {
       description:
@@ -129,23 +170,25 @@ export const rawProjects: LocalizedProjectItem[] = [
     stack: ["python", "git"]
   },
   {
-    id: "006",
-    name: "Leetcode-rs",
+    id: "008",
+    name: "LinariBot",
     en: {
-      description: "My owned Leetcode problems solves, written on Rust.",
+      description: "Telegram bot for Linari community.",
       fullDescription:
-        "A repository dedicated to solving algorithmic challenges on LeetCode using Rust. It focuses on idiomatic Rust code, performance optimizations, and deep diving into Rust's features."
+        "Custom-built Telegram bot specifically designed for the Linari community. It manages group interactions, provides utility and moderation commands."
     },
     ru: {
-      description: "Мои решения алгоритмических задач LeetCode на языке Rust.",
+      description: "Telegram-бот для сообщества Linari.",
       fullDescription:
-        "Репозиторий с решениями алгоритмических задач на LeetCode на языке Rust. Фокусируется на идиоматичном коде Rust, оптимизации производительности и изучении возможностей языка."
+        "Специализированный Telegram-бот, созданный для сообщества Linari. Управляет групповыми взаимодействиями, предоставляет утилиты и команды модерации."
     },
-    source: "https://github.com/Akkraizen/leetcode-rs",
-    stack: ["rust"]
+    source: "https://github.com/Akkraizen/linari-bot",
+    demo: "https://t.me/linarime_chat",
+    image: linariBotImg,
+    stack: ["python", "git"]
   },
   {
-    id: "007",
+    id: "009",
     name: "Bio",
     en: {
       description: "My own bio website, written on TypeScript and Vue.js.",
@@ -162,7 +205,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     stack: ["ts", "vue", "git"]
   },
   {
-    id: "008",
+    id: "010",
     name: "Zenit VA",
     en: {
       description: "Simple Voice Assistant, written on Python",
@@ -178,21 +221,20 @@ export const rawProjects: LocalizedProjectItem[] = [
     stack: ["python", "git"]
   },
   {
-    id: "009",
-    name: "VIO",
+    id: "011",
+    name: "Leetcode-rs",
     en: {
-      description: "Client-side URL shortener, written on TypeScript and Vue.js.",
+      description: "My owned Leetcode problems solves, written on Rust.",
       fullDescription:
-        "VIO is a fast and lightweight URL shortening service that runs entirely in the browser without a backend. It generates compact 8-character Base62 links, shows an interactive redirect screen with a 3-second countdown, and keeps a history of the last 20 links in localStorage. A rewrite of my earlier project k-ls."
+        "A repository dedicated to solving algorithmic challenges on LeetCode using Rust. It focuses on idiomatic Rust code, performance optimizations, and deep diving into Rust's features."
     },
     ru: {
-      description: "Клиентский сервис сокращения ссылок на TypeScript и Vue.js.",
+      description: "Мои решения алгоритмических задач LeetCode на языке Rust.",
       fullDescription:
-        "VIO — быстрый и лёгкий сервис сокращения ссылок, работающий полностью в браузере без бэкенда. Генерирует компактные 8-символьные Base62-ссылки, показывает интерактивный экран перенаправления с 3-секундным отсчётом и хранит историю последних 20 ссылок в localStorage. Переписанная версия моего проекта k-ls."
+        "Репозиторий с решениями алгоритмических задач на LeetCode на языке Rust. Фокусируется на идиоматичном коде Rust, оптимизации производительности и изучении возможностей языка."
     },
-    source: "https://github.com/Akkraizen/vio",
-    demo: "https://vio.akkraizen.dev",
-    stack: ["ts", "vue", "git"]
+    source: "https://github.com/Akkraizen/leetcode-rs",
+    stack: ["rust"]
   }
 ];
 
