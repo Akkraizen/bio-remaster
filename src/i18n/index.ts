@@ -1,5 +1,6 @@
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { createI18n } from "vue-i18n";
+import { track } from "@/utils/analytics.ts";
 import en from "./locales/en";
 import ru from "./locales/ru";
 
@@ -11,10 +12,41 @@ export const translations = {
 } as const;
 
 const STORAGE_KEY = "locale";
+const LEET_VALUE = "l33t";
+
+function readSavedLocale(): string | null {
+  try {
+    return localStorage.getItem(STORAGE_KEY);
+  } catch {
+    return null;
+  }
+}
+
+export const leetMode = ref(readSavedLocale() === LEET_VALUE);
+
+const LEET_MAP: Record<string, string> = { a: "4", e: "3", i: "1", o: "0", s: "5", t: "7" };
+
+export function leetify(text: string): string {
+  let result = "";
+  let skip: string | null = null;
+  for (const char of text) {
+    if (skip) {
+      if (char === skip) skip = null;
+      result += char;
+      continue;
+    }
+    if (char === "<") skip = ">";
+    else if (char === "&") skip = ";";
+    else if (char === "{") skip = "}";
+    result += LEET_MAP[char.toLowerCase()] ?? char;
+  }
+  return result;
+}
 
 function getInitialLocale(): Locale {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = readSavedLocale();
+    if (saved === LEET_VALUE) return "en";
     if (saved === "ru" || saved === "en") {
       return saved;
     }
@@ -41,8 +73,23 @@ export const currentLocale = computed<Locale>({
   }
 });
 
+if (typeof document !== "undefined") document.documentElement.lang = i18n.global.locale.value;
+
+export function setLeet() {
+  track("language", { locale: "l33t" });
+  leetMode.value = true;
+  i18n.global.locale.value = "en";
+  document.documentElement.lang = "en";
+  try {
+    localStorage.setItem(STORAGE_KEY, LEET_VALUE);
+  } catch {}
+}
+
 export function setLocale(lang: Locale) {
+  if (lang !== i18n.global.locale.value || leetMode.value) track("language", { locale: lang });
+  leetMode.value = false;
   i18n.global.locale.value = lang;
+  document.documentElement.lang = lang;
   try {
     localStorage.setItem(STORAGE_KEY, lang);
   } catch (e) {
@@ -57,7 +104,8 @@ export function toggleLocale(): Locale {
 }
 
 export function t(key: string, named?: Record<string, unknown>): string {
-  return (i18n.global.t as any)(key, named ?? {});
+  const text: string = (i18n.global.t as any)(key, named ?? {});
+  return leetMode.value ? leetify(text) : text;
 }
 
 export function useI18n() {
@@ -66,6 +114,8 @@ export function useI18n() {
     locale,
     t,
     setLocale,
+    setLeet,
+    leetMode,
     toggleLocale,
     isRu: computed(() => locale.value === "ru"),
     isEn: computed(() => locale.value === "en")

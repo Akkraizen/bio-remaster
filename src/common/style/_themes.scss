@@ -60,6 +60,46 @@ $themes: (
     on-accent: #000000,
     glitch-1: #ff8a00,
     glitch-2: #ffffff
+  ),
+  vapor: (
+    bg: #0b0418,
+    text: #efe6ff,
+    accent: #b967ff,
+    secondary: #05ffa1,
+    warning: #fffb96,
+    on-accent: #0b0418,
+    glitch-1: #01cdfe,
+    glitch-2: #ff71ce
+  ),
+  sakura: (
+    bg: #0d0609,
+    text: #ffeef4,
+    accent: #ff8fc0,
+    secondary: #7dffd8,
+    warning: #ffe066,
+    on-accent: #0d0609,
+    glitch-1: #7dffd8,
+    glitch-2: #c9a0ff
+  ),
+  cobalt: (
+    bg: #03050d,
+    text: #e4ebff,
+    accent: #4d7cff,
+    secondary: #ff9d00,
+    warning: #ff9d00,
+    on-accent: #050a1a,
+    glitch-1: #ff9d00,
+    glitch-2: #00e5ff
+  ),
+  ghost: (
+    bg: #060606,
+    text: #c8c8c8,
+    accent: #f2f2f2,
+    secondary: #ff003c,
+    warning: #ff003c,
+    on-accent: #000000,
+    glitch-1: #ff003c,
+    glitch-2: #7a7a7a
   )
 );
 
@@ -82,4 +122,61 @@ $themes: (
   --accent-color: var(--c-accent);
   --warning-color: var(--c-warning);
   --grid-color: color-mix(in srgb, var(--c-accent) 5%, transparent);
+}
+
+@property --c-accent {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #c6ff33;
+}
+
+@property --c-secondary {
+  syntax: "<color>";
+  inherits: true;
+  initial-value: #ff003c;
+}
+
+[data-theme="overclock"] {
+  --c-bg: #07020c;
+  --c-text: #fbf6ff;
+  --c-accent: #ff2bd6;
+  --c-secondary: #2bfff1;
+  --c-warning: #fff22b;
+  --c-on-accent: #07020c;
+  --c-glitch-1: #2bfff1;
+  --c-glitch-2: #fff22b;
+}
+
+:root[data-theme="overclock"]:not([data-motion="reduced"]) {
+  animation: overclock-cycle 6s linear infinite;
+}
+
+@keyframes overclock-cycle {
+  0%, 100% { --c-accent: #ff2bd6; --c-secondary: #2bfff1; }
+  20% { --c-accent: #ff6a2b; --c-secondary: #2b6aff; }
+  40% { --c-accent: #e8ff2b; --c-secondary: #d62bff; }
+  60% { --c-accent: #2bff7a; --c-secondary: #ff2b6a; }
+  80% { --c-accent: #2bc8ff; --c-secondary: #ffd62b; }
+}
+
+[data-theme="midnight"] {
+  --c-bg: #050814;
+  --c-text: #d8def0;
+  --c-accent: #8fa6ff;
+  --c-secondary: #c49bff;
+  --c-warning: #ff6b8a;
+  --c-on-accent: #050814;
+  --c-glitch-1: #c49bff;
+  --c-glitch-2: #5ce1e6;
+}
+
+[data-theme="root"] {
+  --c-bg: #000000;
+  --c-text: #ececec;
+  --c-accent: #ffd447;
+  --c-secondary: #ff3131;
+  --c-warning: #ff3131;
+  --c-on-accent: #000000;
+  --c-glitch-1: #ff3131;
+  --c-glitch-2: #ffffff;
 }

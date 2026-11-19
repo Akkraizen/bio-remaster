@@ -68,6 +68,7 @@ const handleClick = (event: MouseEvent) => {
           }
         ]"
         :aria-pressed="active || undefined"
+        :disabled="disabled"
         @click="handleClick"
       >
         <span class="button-content">
@@ -113,6 +114,13 @@ const handleClick = (event: MouseEvent) => {
   transition: all 0.2s ease;
   outline: none;
   border: none;
+
+  &:focus-visible:not(.is-disabled) {
+    background: vars.$accent-color;
+    color: vars.$bg-color;
+    outline: 1px dashed vars.$bg-color;
+    outline-offset: -5px;
+  }
 
   .button-content {
     position: relative;

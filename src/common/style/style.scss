@@ -1,12 +1,33 @@
 @use "_fonts";
 @use "_animations";
 @use "_vars";
+@use "_mixins";
 @use "_themes";
 
 html {
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
   scrollbar-arrow-color: transparent;
+}
+
+textarea {
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: vars.alpha(vars.$accent-color, 0.4);
+  }
+
+  &::-webkit-scrollbar-track,
+  &::-webkit-scrollbar-corner {
+    background: transparent;
+  }
+
+  &::-webkit-resizer {
+    background:
+      linear-gradient(135deg, transparent 0 55%, vars.$accent-color 55% 62%, transparent 62% 70%, vars.$accent-color 70% 77%, transparent 77% 85%, vars.$accent-color 85%);
+  }
 }
 
 ::selection {
@@ -141,5 +162,118 @@ h1 {
 
   .reveal:not(.revealed) {
     opacity: 1;
+  }
+}
+
+a[href]:not([class]) {
+  @include mixins.cyber-link;
+}
+
+html.overlay-open {
+  overflow: hidden;
+
+  body {
+    padding-right: var(--scrollbar-gap, 0px);
+  }
+
+  .cyber-navbar {
+    background: vars.$bg-color;
+  }
+}
+
+:where(a[href], button, input, select, textarea, summary, [tabindex]:not([tabindex="-1"])):focus-visible {
+  outline: 2px solid vars.$accent-color;
+  outline-offset: 3px;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+
+  .cyber-navbar,
+  .cyber-footer,
+  .grid-bg,
+  .scanline,
+  .glitch-overlay,
+  .cyber-cursor,
+  .cyber-toast,
+  .cyber-update,
+  .cyber-cat,
+  .skip-link {
+    display: none !important;
+  }
+
+  .content-wrapper {
+    margin: 0;
+    padding: 0;
+  }
+
+  @page {
+    margin: 14mm;
+  }
+}
+
+.app-container .page-container {
+  view-transition-name: page;
+}
+
+.page-container .hero-section {
+  view-transition-name: hero;
+}
+
+header.cyber-navbar {
+  view-transition-name: navbar;
+}
+
+footer.cyber-footer {
+  view-transition-name: footer;
+}
+
+.avatar-image,
+.profile-avatar {
+  view-transition-name: avatar;
+}
+
+::view-transition-group(*) {
+  animation-duration: 0.42s;
+  animation-timing-function: cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+}
+
+::view-transition-group(page) {
+  animation: none;
+}
+
+::view-transition-old(page),
+::view-transition-new(page),
+::view-transition-old(hero),
+::view-transition-new(hero) {
+  height: 100%;
+  object-fit: none;
+  object-position: left top;
+}
+
+::view-transition-old(page),
+::view-transition-old(hero) {
+  animation: cyber-glitch-out 0.3s steps(1) both;
+}
+
+::view-transition-new(page),
+::view-transition-new(hero) {
+  animation: cyber-glitch-in 0.3s steps(1) 0.24s both;
+}
+
+:root[data-motion="reduced"] {
+  &::view-transition-group(*),
+  &::view-transition-old(*),
+  &::view-transition-new(*) {
+    animation: none !important;
   }
 }

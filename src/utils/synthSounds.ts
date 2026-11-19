@@ -1,6 +1,7 @@
 import { watch } from "vue";
 import { preferences } from "@/hook/usePreferences.ts";
 import { getSfxOutput, isSoundEnabled } from "@/utils/playTransitionSound.ts";
+import { soundProfile } from "@/utils/soundProfiles.ts";
 
 const between = (min: number, max: number) => min + Math.random() * (max - min);
 
@@ -63,10 +64,10 @@ function stutter(
 interface StaticOptions {
   duration: number;
   gain: number;
-  /** Центры полосовых фильтров, Гц */
+  /** Band-pass filter centers, Hz */
   bands: number[];
   q?: number;
-  /** Во сколько раз уходят частоты полос к концу звука */
+  /** How far the band frequencies shift by the end of the sound */
   sweep?: number;
   density?: number;
   delay?: number;
@@ -86,6 +87,7 @@ function staticBurst({
   const out = output();
   if (!out) return;
   const { ctx, bus } = out;
+  const profile = soundProfile();
 
   const start = ctx.currentTime + delay;
   const end = start + duration;
@@ -94,12 +96,13 @@ function staticBurst({
   source.buffer = getNoiseBuffer(ctx, color);
 
   const env = ctx.createGain();
-  stutter(env.gain, start, duration, gain, density);
+  stutter(env.gain, start, duration, gain * profile.gain, Math.min(1, density * profile.density + (1 - profile.density) * 0.3));
 
-  for (const freq of bands) {
+  for (const band of bands) {
+    const freq = Math.min(band * profile.pitch, 16000);
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.Q.value = q;
+    filter.Q.value = q * profile.q;
     filter.frequency.setValueAtTime(freq, start);
     if (sweep) filter.frequency.exponentialRampToValueAtTime(freq * sweep, end);
     source.connect(filter).connect(env);
@@ -112,7 +115,7 @@ function staticBurst({
 
 const crushCurves = new Map<number, Float32Array<ArrayBuffer>>();
 
-// Квантование амплитуды до нескольких уровней — "битый" цифровой звук
+// Quantize amplitude to a few levels for a "broken" digital sound
 function crushCurve(levels: number) {
   let curve = crushCurves.get(levels);
   if (!curve) {
@@ -129,7 +132,7 @@ function crushCurve(levels: number) {
 interface DataToneOptions {
   freq: number;
   freqEnd?: number;
-  /** Разброс случайных скачков частоты, доля от текущей */
+  /** Spread of random frequency jumps, as a fraction of the current one */
   spread?: number;
   duration: number;
   gain: number;
@@ -139,27 +142,30 @@ interface DataToneOptions {
   delay?: number;
 }
 
-// Тон с частотой, скачущей ступеньками, как у передачи данных
+// Tone with stepwise frequency jumps, like a data transmission
 function dataTone({
   freq,
   freqEnd = freq,
   spread = 0.2,
   duration,
   gain,
-  type = "sawtooth",
-  levels = 4,
+  type,
+  levels,
   density = 0.85,
   delay = 0
 }: DataToneOptions) {
   const out = output();
   if (!out) return;
   const { ctx, bus } = out;
+  const profile = soundProfile();
+  freq *= profile.pitch;
+  freqEnd *= profile.pitch;
 
   const start = ctx.currentTime + delay;
   const end = start + duration;
 
   const osc = ctx.createOscillator();
-  osc.type = type;
+  osc.type = type ?? profile.tone;
   for (let t = start; t < end; t += between(0.008, 0.016)) {
     const progress = (t - start) / duration;
     const base = freq * Math.pow(freqEnd / freq, progress);
@@ -167,10 +173,10 @@ function dataTone({
   }
 
   const crusher = ctx.createWaveShaper();
-  crusher.curve = crushCurve(levels);
+  crusher.curve = crushCurve(levels ?? profile.levels);
 
   const env = ctx.createGain();
-  stutter(env.gain, start, duration, gain, density);
+  stutter(env.gain, start, duration, gain * profile.gain, density);
 
   osc.connect(crusher).connect(env).connect(bus);
   osc.start(start);
@@ -230,11 +236,12 @@ export function playTransitionSound() {
   });
   env.gain.setValueAtTime(0, start + duration);
 
+  const profile = soundProfile();
   for (const [freq, weight] of TRANSITION_BANDS) {
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.Q.value = 1.4;
-    filter.frequency.value = freq;
+    filter.Q.value = 1.4 * profile.q;
+    filter.frequency.value = Math.min(freq * profile.pitch, 16000);
     const bandGain = ctx.createGain();
     bandGain.gain.value = weight;
     source.connect(filter).connect(bandGain).connect(env);
@@ -272,25 +279,26 @@ export const playCarouselTick = throttle(() => {
 }, 60);
 
 export function playOpenSweep() {
-  staticBurst({ duration: 0.22, gain: 0.4, bands: [400, 3000], sweep: 3 });
-  dataTone({
-    freq: 200,
-    freqEnd: 900,
-    spread: 0.25,
-    duration: 0.2,
-    gain: 0.06
+  staticBurst({ duration: 0.025, gain: 0.45, bands: [5000], density: 1, color: "white" });
+  staticBurst({
+    duration: 0.18,
+    gain: 0.4,
+    bands: [600, 2500, 6000],
+    sweep: 1.4,
+    density: 0.7,
+    delay: 0.02
   });
 }
 
 export function playCloseSweep() {
-  staticBurst({ duration: 0.18, gain: 0.4, bands: [3000, 6000], sweep: 0.25 });
-  dataTone({
-    freq: 900,
-    freqEnd: 180,
-    spread: 0.25,
-    duration: 0.16,
-    gain: 0.06
+  staticBurst({
+    duration: 0.14,
+    gain: 0.4,
+    bands: [600, 2500, 6000],
+    sweep: 0.6,
+    density: 0.65
   });
+  staticBurst({ duration: 0.02, gain: 0.4, bands: [4000], density: 1, color: "white", delay: 0.14 });
 }
 
 export function playConfirm() {
@@ -422,7 +430,7 @@ function startAmbient() {
 
   filter.connect(master).connect(bus);
 
-  // Шипение эфира и редкие потрескивания поверх гула
+  // Radio hiss and rare crackles over the hum
   const hiss = ctx.createBufferSource();
   hiss.buffer = getNoiseBuffer(ctx);
   hiss.loop = true;
@@ -481,4 +489,82 @@ watch(() => [preferences.ambient, preferences.soundEnabled], syncAmbient);
 export function enableAmbient() {
   ambientAllowed = true;
   syncAmbient();
+}
+
+let idleTrack: { stop: () => void } | null = null;
+
+const IDLE_SCALE = [220, 261.63, 293.66, 329.63, 392, 440, 523.25];
+const IDLE_STEP_S = 0.75;
+
+export function startIdleTrack() {
+  if (idleTrack) return;
+  const out = output();
+  if (!out) return;
+  const { ctx, bus } = out;
+
+  const master = ctx.createGain();
+  master.gain.setValueAtTime(0.0001, ctx.currentTime);
+  master.gain.exponentialRampToValueAtTime(0.22, ctx.currentTime + 3);
+
+  const filter = ctx.createBiquadFilter();
+  filter.type = "lowpass";
+  filter.frequency.value = 1400;
+
+  const delay = ctx.createDelay(1);
+  delay.delayTime.value = IDLE_STEP_S * 0.75;
+  const feedback = ctx.createGain();
+  feedback.gain.value = 0.45;
+  delay.connect(feedback).connect(delay);
+
+  filter.connect(master);
+  filter.connect(delay).connect(master);
+  master.connect(bus);
+
+  const pad = [110, 164.81].map((freq) => {
+    const osc = ctx.createOscillator();
+    osc.type = "triangle";
+    osc.frequency.value = freq;
+    const gain = ctx.createGain();
+    gain.gain.value = 0.08;
+    osc.connect(gain).connect(filter);
+    osc.start();
+    return osc;
+  });
+
+  let step = 0;
+  const note = () => {
+    const now = ctx.currentTime;
+    const freq = IDLE_SCALE[(step * 3 + (step % 4 === 3 ? 2 : 0)) % IDLE_SCALE.length];
+    step++;
+    if (Math.random() < 0.25) return;
+    const osc = ctx.createOscillator();
+    osc.type = "sine";
+    osc.frequency.value = freq;
+    const env = ctx.createGain();
+    env.gain.setValueAtTime(0.0001, now);
+    env.gain.exponentialRampToValueAtTime(0.18, now + 0.03);
+    env.gain.exponentialRampToValueAtTime(0.0001, now + IDLE_STEP_S * 1.6);
+    osc.connect(env).connect(filter);
+    osc.start(now);
+    osc.stop(now + IDLE_STEP_S * 1.7);
+    osc.onended = () => env.disconnect();
+  };
+  const timer = setInterval(note, IDLE_STEP_S * 1000);
+
+  idleTrack = {
+    stop: () => {
+      clearInterval(timer);
+      const now = ctx.currentTime;
+      master.gain.cancelScheduledValues(now);
+      master.gain.setValueAtTime(master.gain.value, now);
+      master.gain.exponentialRampToValueAtTime(0.0001, now + 0.8);
+      pad.forEach((osc) => osc.stop(now + 0.9));
+      setTimeout(() => master.disconnect(), 1000);
+    }
+  };
+}
+
+export function stopIdleTrack() {
+  idleTrack?.stop();
+  idleTrack = null;
 }

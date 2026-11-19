@@ -1,10 +1,17 @@
-import sjImg from "@assets/projects/SJ.png";
-import hisokaMorrowImg from "@assets/projects/HisokaMorrowBot.jpg";
-import linariBotImg from "@assets/projects/LinariBot.jpg";
-import akhsImg from "@assets/projects/AKHS.jpg";
-import reverseImg from "@assets/projects/Reverse.jpg";
-import berillImg from "@assets/projects/Berill.png";
-import wavedotImg from "@assets/projects/Wavedot.png";
+import sjImg from "@assets/projects/SJ.png?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import hisokaMorrowImg from "@assets/projects/HisokaMorrowBot.jpg?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import linariBotImg from "@assets/projects/LinariBot.jpg?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import akhsImg from "@assets/projects/AKHS.jpg?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import reverseImg from "@assets/projects/Reverse.jpg?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import berillImg from "@assets/projects/Berill.png?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import wavedotImg from "@assets/projects/Wavedot.png?w=800&format=webp&quality=80&withoutEnlargement&imagetools";
+import sjFull from "@assets/projects/SJ.png?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
+import hisokaMorrowFull from "@assets/projects/HisokaMorrowBot.jpg?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
+import linariBotFull from "@assets/projects/LinariBot.jpg?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
+import akhsFull from "@assets/projects/AKHS.jpg?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
+import reverseFull from "@assets/projects/Reverse.jpg?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
+import berillFull from "@assets/projects/Berill.png?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
+import wavedotFull from "@assets/projects/Wavedot.png?w=1600&format=webp&quality=82&withoutEnlargement&imagetools";
 import type { Locale } from "@/i18n";
 
 export interface Project {
@@ -15,6 +22,8 @@ export interface Project {
   source?: string;
   demo?: string;
   image?: string;
+  imageFull?: string;
+  gallery?: string[];
   stack: string[];
 }
 
@@ -32,6 +41,8 @@ export interface LocalizedProjectItem {
   source?: string;
   demo?: string;
   image?: string;
+  imageFull?: string;
+  gallery?: string[];
   stack: string[];
 }
 
@@ -54,6 +65,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     source: "https://github.com/Akkraizen/Berill",
     demo: "https://berill.space",
     image: berillImg,
+    imageFull: berillFull,
     stack: ["kotlin", "gradle", "docker", "git"]
   },
   {
@@ -74,6 +86,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     source: "https://github.com/Akkraizen/Wavedot",
     demo: "https://wavedot.space",
     image: wavedotImg,
+    imageFull: wavedotFull,
     stack: ["kotlin", "gradle", "docker", "git"]
   },
   {
@@ -91,6 +104,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     },
     demo: "https://swapjob.ru",
     image: sjImg,
+    imageFull: sjFull,
     stack: ["docker", "ts", "git", "python"]
   },
   {
@@ -110,6 +124,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     },
     source: "https://github.com/Akkraizen/AKHS",
     image: akhsImg,
+    imageFull: akhsFull,
     stack: ["kotlin", "spring", "gradle", "docker", "git"]
   },
   {
@@ -130,6 +145,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     source: "https://github.com/Akkraizen/Hisoka",
     demo: "https://discord.com/oauth2/authorize?client_id=1271073974356279396&permissions=8&integration_type=0&scope=bot",
     image: hisokaMorrowImg,
+    imageFull: hisokaMorrowFull,
     stack: ["kotlin", "gradle", "docker", "git"]
   },
   {
@@ -167,6 +183,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     source: "https://github.com/Akkraizen/ReverseRewrite",
     demo: "https://discord.com/oauth2/authorize?client_id=979745072843206686&permissions=8&integration_type=0&scope=bot",
     image: reverseImg,
+    imageFull: reverseFull,
     stack: ["python", "git"]
   },
   {
@@ -185,6 +202,7 @@ export const rawProjects: LocalizedProjectItem[] = [
     source: "https://github.com/Akkraizen/linari-bot",
     demo: "https://t.me/linarime_chat",
     image: linariBotImg,
+    imageFull: linariBotFull,
     stack: ["python", "git"]
   },
   {
@@ -247,6 +265,8 @@ export function getProjectsForLocale(locale: Locale): Project[] {
     source: item.source,
     demo: item.demo,
     image: item.image,
+    imageFull: item.imageFull,
+    gallery: item.gallery,
     stack: item.stack
   }));
 }

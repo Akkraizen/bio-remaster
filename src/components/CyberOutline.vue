@@ -6,6 +6,7 @@ import {
   type CyberShape,
   useCyberShape
 } from "@/hook/useCyberShape";
+import { isOutlineDrawAllowed } from "@/hook/useOutlineDraw.ts";
 
 interface Props {
   shape?: CyberShape;
@@ -54,8 +55,8 @@ const props = withDefaults(defineProps<Props>(), {
   cursorFocus: true
 });
 
-// A custom dash pattern would be overridden by the draw-in dash trick
-const animateDraw = computed(() => props.drawIn && !props.strokeDasharray);
+const drawOnMount = isOutlineDrawAllowed();
+const animateDraw = computed(() => drawOnMount && props.drawIn && !props.strokeDasharray);
 
 const { containerRef, width, height, getPath, getClipPath } = useCyberShape(
   () => ({
@@ -154,7 +155,13 @@ const { containerRef, width, height, getPath, getClipPath } = useCyberShape(
 }
 
 @keyframes outline-draw {
-  to {
+  99.9% {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 0;
+  }
+
+  100% {
+    stroke-dasharray: none;
     stroke-dashoffset: 0;
   }
 }

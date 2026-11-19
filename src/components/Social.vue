@@ -8,7 +8,7 @@ const props = defineProps<{
 }>();
 
 // @ts-ignore
-const { containerRef, getPath, getClipPath } = useCyberShape(() => ({
+const { containerRef, getPath, getOuterClipPath } = useCyberShape(() => ({
   variant: "all-corners",
   cornerSize: props.cornerSize ?? 8,
   borderWidth: props.borderWidth ?? 2
@@ -16,7 +16,7 @@ const { containerRef, getPath, getClipPath } = useCyberShape(() => ({
 </script>
 
 <template>
-  <div ref="containerRef" class="social-square" :style="{ clipPath: getClipPath }">
+  <div ref="containerRef" class="social-square" :style="{ clipPath: getOuterClipPath }">
     <svg class="social-border" width="100%" height="100%">
       <path :d="getPath" fill="none" stroke="currentColor" :stroke-width="borderWidth ?? 2" />
     </svg>

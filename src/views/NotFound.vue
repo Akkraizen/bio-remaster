@@ -37,7 +37,7 @@ const goHome = () => {
 </script>
 
 <template>
-  <main class="view not-found">
+  <div class="view not-found">
     <CyberHero
       title="Error.404"
       subtitle="REQUESTED COORDINATES NOT FOUND IN THE GRID"
@@ -45,20 +45,20 @@ const goHome = () => {
     />
 
     <div class="cyber-card-content-container">
-      <CyberCard title="System.Alert" is-warning>
+      <CyberCard title="System.Alert" shape="all-corners" is-warning>
         <div class="alert-content">
           <p class="warning-text">
             ACCESS DENIED: The resource you are looking for has been moved, deleted, or never existed.
           </p>
           <div class="actions">
-            <CyberButton @click="goHome" variant="solid">
+            <CyberButton @click="goHome" variant="solid" shape="rectangle">
               Return to Entrypoint
             </CyberButton>
           </div>
         </div>
       </CyberCard>
     </div>
-  </main>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -77,7 +77,6 @@ const goHome = () => {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  padding: 1rem;
 }
 
 // Everything on the error page uses the theme's warning color

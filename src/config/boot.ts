@@ -4,7 +4,11 @@ export const themes = [
   "matrix",
   "ice",
   "amber",
-  "blood"
+  "blood",
+  "vapor",
+  "sakura",
+  "cobalt",
+  "ghost"
 ] as const;
 
 export type Theme = (typeof themes)[number];
@@ -20,4 +24,10 @@ export const logoPath = { prefix: "/logos/logo-", suffix: ".svg" } as const;
 export const themeLogoUrl = (theme: Theme) =>
   `${logoPath.prefix}${theme}${logoPath.suffix}`;
 
-export const bootConfig = { themes, storageKeys, logoPath };
+export const secretThemes = ["overclock", "midnight", "root"] as const;
+
+export type SecretTheme = (typeof secretThemes)[number];
+
+export const themeModes = ["random", "chameleon"] as const;
+
+export const bootConfig = { themes, secretThemes, storageKeys, logoPath };

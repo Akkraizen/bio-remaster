@@ -2,6 +2,7 @@
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { preferences } from "@/hook/usePreferences.ts";
 import { findCursorTarget } from "@/utils/uiSounds.ts";
+import { hasAchievement } from "@/utils/achievements.ts";
 
 const finePointer = ref(false);
 const visible = ref(false);
@@ -16,6 +17,7 @@ let tracking = false;
 let mediaQuery: MediaQueryList | null = null;
 
 const enabled = computed(() => finePointer.value && preferences.cursor);
+const catMode = computed(() => preferences.cursorStyle === "cat" && hasAchievement("cat"));
 
 const FREE_SIZE = 24;
 const PADDING = 6;
@@ -144,13 +146,15 @@ onBeforeUnmount(() => {
   <div
     v-if="enabled"
     class="cyber-cursor"
-    :class="{ visible, locked, pressed }"
+    :class="{ visible, locked, pressed, cat: catMode }"
     aria-hidden="true"
   >
     <div
       class="cursor-dot"
       :style="{ transform: `translate(${pointer.x}px, ${pointer.y}px)` }"
-    />
+    >
+      <span v-if="catMode" class="cat-face">{{ pressed ? "=^o^=" : "=^.^=" }}</span>
+    </div>
     <div
       class="cursor-frame"
       :style="{
@@ -212,6 +216,25 @@ onBeforeUnmount(() => {
     left: -1px;
     top: -5px;
   }
+}
+
+.cat .cursor-dot {
+  &::before,
+  &::after {
+    display: none;
+  }
+}
+
+.cat-face {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform: translate(-50%, -50%);
+  color: vars.$accent-color;
+  font-size: 13px;
+  font-weight: bold;
+  white-space: nowrap;
+  text-shadow: 0 0 4px vars.$accent-color;
 }
 
 .cursor-frame {

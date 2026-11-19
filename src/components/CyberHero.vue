@@ -40,7 +40,7 @@ defineProps<{
     font-size: 2rem;
     line-height: 1;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       font-size: 1.5rem;
     }
 
@@ -57,7 +57,7 @@ defineProps<{
     font-size: 1.5rem;
     line-height: 1;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       font-size: 1.25rem;
     }
 
@@ -73,7 +73,7 @@ defineProps<{
   &.medium {
     font-size: 1.3rem;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       font-size: 1rem;
     }
 

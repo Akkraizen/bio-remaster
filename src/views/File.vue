@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import CyberCard from "@components/CyberCard.vue";
+import CyberButton from "@components/CyberButton.vue";
+import { useRouter } from "vue-router";
+import { staticPages } from "@/config/seo.ts";
 import CyberHero from "@components/CyberHero.vue";
 import Social from "@components/Social.vue";
 import CyberImage from "@components/CyberImage.vue";
 import socials from "@assets/socials";
 import TechVerticalCarousel from "@components/TechVerticalCarousel.vue";
+import StackLanguages from "@components/StackLanguages.vue";
 import { ref, onMounted, onUnmounted, watch, computed } from "vue";
 import Typed from "typed.js";
 import { useVersion } from "@/hook/useVersion";
@@ -12,11 +16,29 @@ import { useResponsive } from "@/hook/useResponsive";
 import { useI18n, translations } from "@/i18n";
 import DecryptText from "@components/DecryptText.vue";
 import CountUp from "@components/CountUp.vue";
+import CyberTimeline from "@components/CyberTimeline.vue";
+import CyberClock from "@components/CyberClock.vue";
+import CyberStatus from "@components/CyberStatus.vue";
 import { reducedMotion } from "@/hook/usePreferences.ts";
 import { playTypeTick } from "@/utils/synthSounds.ts";
 import { scrambleTextIn } from "@/utils/scrambleText.ts";
+import { toggleOverclock } from "@/utils/easterEggs.ts";
 
 const version = useVersion();
+const router = useRouter();
+const openCv = () => router.push(staticPages["Core.CV"].path);
+
+const AVATAR_TAPS = 5;
+const AVATAR_TAP_WINDOW = 2000;
+let avatarTaps: number[] = [];
+
+const onAvatarTap = () => {
+  const now = Date.now();
+  avatarTaps = [...avatarTaps.filter((time) => now - time < AVATAR_TAP_WINDOW), now];
+  if (avatarTaps.length < AVATAR_TAPS) return;
+  avatarTaps = [];
+  toggleOverclock();
+};
 const { locale, t } = useI18n();
 const typedElement = ref<HTMLElement | null>(null);
 // Typed.js removes its cursor on destroy; this one replaces it after a language switch
@@ -28,7 +50,10 @@ const { getResponsiveShape } = useResponsive();
 
 const nicknames = computed(() => translations[locale.value].file.nicknames);
 
+const biographyText = computed(() => translations[locale.value].file.biographyText);
+
 const ageValue = computed(() => Number(t("file.ageValue")));
+
 
 // Typed.js has no per-character hook, so typing is detected through DOM mutations
 const observeTyping = (element: HTMLElement) => {
@@ -106,13 +131,14 @@ const calculateInfoCorners = getResponsiveShape({
 });
 
 const calculateExpCorners = getResponsiveShape({
-  large: "bottom-corners",
+  mobile: "bottom-corners",
+  large: "bottom-right",
   default: "bottom-right"
 });
 </script>
 
 <template>
-  <main class="view">
+  <div class="view">
     <CyberHero
       :title="t('file.title')"
       :subtitle="`${t('file.subtitle')} ${version}`"
@@ -122,35 +148,55 @@ const calculateExpCorners = getResponsiveShape({
     <div class="portfolio-container">
       <div class="top-row">
         <div class="avatar-group">
-          <section>
+          <section @click="onAvatarTap">
             <CyberImage
-              src="/avatar.jpg"
+              src="/avatar.webp"
               alt="Avatar"
               :corner-size="30"
+              :boardWidth="10"
               class="avatar-image"
             />
           </section>
+          <CyberClock class="avatar-clock" />
         </div>
 
         <section class="bio-section">
           <div class="bio-text-container">
-            <h1><DecryptText :text="t('file.biographyTitle')" /></h1>
+            <div class="bio-header">
+              <h1><DecryptText :text="t('file.biographyTitle')" /></h1>
+              <CyberButton
+                class="bio-cv"
+                variant="solid"
+                shape="rectangle"
+                :corner-size="8"
+                @click="openCv"
+              >
+                &gt; {{ t("file.openCv") }}
+              </CyberButton>
+            </div>
             <!-- Excluded from the page-wide scramble: it runs its own (decryptBiography) -->
             <p class="bio-text" data-no-scramble>
-              <span ref="typedElement"></span
-              ><span
-                v-if="showStaticCursor"
-                class="typed-cursor typed-cursor--blink"
-                aria-hidden="true"
-                >_</span
+              <span class="bio-ghost" aria-hidden="true"><span v-html="biographyText"></span>_</span>
+              <span class="bio-live"
+                ><span ref="typedElement"></span
+                ><span
+                  v-if="showStaticCursor"
+                  class="typed-cursor typed-cursor--blink"
+                  aria-hidden="true"
+                  >_</span
+                ></span
               >
             </p>
           </div>
+          <CyberStatus />
         </section>
 
         <section class="tech-section">
           <CyberCard :title="t('file.stackTitle')" :shape="calculateStackCorners">
-            <TechVerticalCarousel />
+            <div class="stack-carousel">
+              <TechVerticalCarousel :rows="3" />
+            </div>
+            <StackLanguages class="stack-languages" />
           </CyberCard>
         </section>
       </div>
@@ -191,14 +237,6 @@ const calculateExpCorners = getResponsiveShape({
               <tbody>
                 <tr>
                   <td class="table-ceil">
-                    <h3 class="table-header">{{ t('file.timezone') }}</h3>
-                  </td>
-                  <td class="table-ceil">
-                    <a>{{ t('file.timezoneValue') }}</a>
-                  </td>
-                </tr>
-                <tr>
-                  <td class="table-ceil">
                     <h3 class="table-header">{{ t('file.age') }}</h3>
                   </td>
                   <td class="table-ceil">
@@ -213,12 +251,7 @@ const calculateExpCorners = getResponsiveShape({
                     <h3 class="table-header">{{ t('file.location') }}</h3>
                   </td>
                   <td class="table-ceil">
-                    <a
-                      href="https://yandex.ru/maps/geo/moskva/53166393/"
-                      target="_blank"
-                    >
-                      {{ t('file.locationValue') }}
-                    </a>
+                    <a href="https://yandex.ru/maps/geo/moskva/53166393/" target="_blank">{{ t('file.locationValue') }}</a>
                   </td>
                 </tr>
               </tbody>
@@ -238,8 +271,14 @@ const calculateExpCorners = getResponsiveShape({
           </CyberCard>
         </section>
       </div>
+
+      <section class="timeline-section">
+        <CyberCard :title="t('timeline.title')" shape="diagonal-tl-br">
+          <CyberTimeline />
+        </CyberCard>
+      </section>
     </div>
-  </main>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -247,6 +286,7 @@ const calculateExpCorners = getResponsiveShape({
 @use "@style/_mixins";
 
 .portfolio-container {
+  --side-width: 200px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
@@ -255,11 +295,18 @@ const calculateExpCorners = getResponsiveShape({
 .top-row {
   display: flex;
   gap: 1.5rem;
-  align-items: flex-start;
+  align-items: stretch;
 }
 
 .avatar-group {
   width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.avatar-clock {
+  flex: 1;
 }
 
 .cards-group {
@@ -294,21 +341,77 @@ const calculateExpCorners = getResponsiveShape({
 
 .bio-section {
   flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.bio-section .cyber-status {
+  flex: none;
+  height: auto;
+}
+
+.tech-section :deep(.card-content) {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.stack-carousel {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.bio-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+
+  h1 {
+    margin: 0;
+  }
+}
+
+.bio-cv {
+  flex-shrink: 0;
+
+  :deep(.cyber-button) {
+    padding: 0.3rem 0.9rem;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
 }
 
 .bio-text-container {
+  display: flex;
+  flex-direction: column;
   padding: 15px;
-  height: 100%;
+  flex: 1;
   @include mixins.glass-effect(vars.$accent-color, 0.1);
 }
 
 .bio-text {
+  display: grid;
   line-height: 1.6;
 
   :deep(.typed-cursor) {
     color: vars.$accent-color;
     font-weight: bold;
   }
+}
+
+.bio-ghost,
+.bio-live {
+  grid-area: 1 / 1;
+}
+
+.bio-ghost {
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
 }
 
 .nicknames-list {
@@ -389,7 +492,65 @@ th {
   }
 }
 
-@media (max-width: 1024px) {
+@media (min-width: 769px) {
+  .top-row {
+    display: grid;
+    grid-template-columns: 250px minmax(0, 1fr) auto;
+    grid-template-rows: auto auto;
+    gap: 1.5rem;
+  }
+
+  .avatar-group,
+  .bio-section {
+    display: contents;
+  }
+
+  .avatar-group > section {
+    grid-area: 1 / 1;
+    align-self: start;
+  }
+
+  .avatar-clock {
+    grid-area: 2 / 1;
+  }
+
+  .bio-text-container {
+    grid-area: 1 / 2;
+    min-width: 0;
+  }
+
+  .bio-section .cyber-status {
+    grid-area: 2 / 2;
+    height: 100%;
+  }
+
+  .tech-section {
+    grid-area: 1 / 3 / 3 / 4;
+  }
+}
+
+@media (min-width: 1201px) {
+  .top-row {
+    grid-template-columns: 250px minmax(0, 1fr) var(--side-width);
+  }
+
+  .exp-section {
+    flex: 0 0 var(--side-width);
+    min-width: 0;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
+  .top-row {
+    grid-template-columns: 200px minmax(0, 1fr);
+  }
+
+  .tech-section {
+    grid-area: 3 / 1 / 4 / 3;
+  }
+}
+
+@media (max-width: 1200px) {
   .top-row {
     flex-wrap: wrap;
   }
@@ -416,6 +577,10 @@ th {
 
   .tech-section {
     flex: 1 1 100%;
+  }
+
+  .stack-languages {
+    display: none;
   }
 
   .info-section,

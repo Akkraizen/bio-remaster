@@ -1,11 +1,13 @@
 <script setup lang="ts">
-import { nextTick, ref, watch } from "vue";
+import { defineAsyncComponent, nextTick, ref, watch } from "vue";
 import CyberNavbar from "@components/CyberNavbar.vue";
 import LoadingScreen from "@components/LoadingScreen.vue";
 import CyberFooter from "@components/CyberFooter.vue";
 import InitScreen from "@components/InitScreen.vue";
 import GlitchOverlay from "@components/GlitchOverlay.vue";
 import CyberCursor from "@components/CyberCursor.vue";
+import CyberToast from "@components/CyberToast.vue";
+import CyberUpdate from "@components/CyberUpdate.vue";
 import {
   enableAmbient,
   playStatic,
@@ -14,6 +16,14 @@ import {
 import { scrambleTextIn } from "@/utils/scrambleText.ts";
 import { useI18n } from "@/i18n";
 import { preferences } from "@/hook/usePreferences.ts";
+import { overlaysReady, terminalAvailable } from "@/hook/useOverlays.ts";
+import { viewTransitionsEnabled } from "@/utils/viewTransitions.ts";
+
+const CommandPalette = defineAsyncComponent(() => import("@components/CommandPalette.vue"));
+const CyberTerminal = defineAsyncComponent(() => import("@components/CyberTerminal.vue"));
+const CyberScreensaver = defineAsyncComponent(() => import("@components/CyberScreensaver.vue"));
+const CyberCat = defineAsyncComponent(() => import("@components/CyberCat.vue"));
+const CyberFinale = defineAsyncComponent(() => import("@components/CyberFinale.vue"));
 
 const SESSION_STORAGE_KEY = "session_initialized";
 
@@ -46,8 +56,14 @@ const skipIntro = preferences.setupCompleted && shouldSkipInit();
 const isInit = ref(!skipIntro);
 const isLoading = ref(false);
 
-const { locale } = useI18n();
-watch(locale, async () => {
+watch(
+  () => !isInit.value && !isLoading.value,
+  (ready) => (overlaysReady.value = ready),
+  { immediate: true }
+);
+
+const { locale, leetMode, t } = useI18n();
+watch([locale, leetMode], async () => {
   await nextTick();
   scrambleTextIn(document.body);
   playStatic();
@@ -85,13 +101,18 @@ function handleLoadingFinished() {
       <div class="scanline"></div>
       <GlitchOverlay />
 
+      <a class="skip-link" href="#content">{{ t("nav.skip") }}</a>
+
       <header class="cyber-navbar">
         <CyberNavbar />
       </header>
 
-      <main class="content-wrapper">
+      <main id="content" class="content-wrapper" tabindex="-1">
         <router-view v-slot="{ Component, route }">
-          <transition name="glitch" mode="out-in">
+          <div v-if="viewTransitionsEnabled" :key="route.path" class="page-container">
+            <component :is="Component" />
+          </div>
+          <transition v-else name="glitch" mode="out-in">
             <div :key="route.path" class="page-container">
               <component :is="Component" />
             </div>
@@ -105,6 +126,15 @@ function handleLoadingFinished() {
     </div>
   </transition>
 
+  <template v-if="overlaysReady">
+    <CommandPalette />
+    <CyberTerminal v-if="terminalAvailable" />
+    <CyberScreensaver />
+    <CyberCat />
+    <CyberFinale />
+  </template>
+  <CyberToast />
+  <CyberUpdate />
   <CyberCursor />
 </template>
 
@@ -123,7 +153,27 @@ function handleLoadingFinished() {
   z-index: 1000;
 }
 
+.skip-link {
+  position: fixed;
+  top: 0.75rem;
+  left: 0.75rem;
+  z-index: 1200;
+  padding: 0.5rem 1rem;
+  background: var(--c-accent);
+  color: var(--c-on-accent);
+  font-weight: bold;
+  text-decoration: none;
+  transform: translateY(-200%);
+
+  &:focus-visible {
+    transform: none;
+    outline: none;
+  }
+}
+
 .content-wrapper {
+  outline: none;
+
   margin-top: 64px;
   flex-grow: 1;
   padding: 18px;

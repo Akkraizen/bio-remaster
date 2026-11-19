@@ -95,3 +95,11 @@ yarn-error.log
 
 # Generated from public/logo.svg by scripts/generate-logos.js
 public/logos/
+
+.idea/
+package-lock.json
+pnpm-lock.yaml
+
+test-results/
+playwright-report/
+.lighthouseci/

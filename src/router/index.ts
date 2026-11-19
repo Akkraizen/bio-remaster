@@ -1,96 +1,106 @@
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHistory, type RouteRecordRaw } from "vue-router";
 import Entrypoint from "@views/Entrypoint.vue";
-import File from "@views/File.vue";
-import Projects from "@views/Projects.vue";
-import ProjectDetail from "@views/ProjectDetail.vue";
-import Test from "@views/Test.vue";
-import NotFound from "@views/NotFound.vue";
 import { playTransitionSound } from "@/utils/synthSounds.ts";
+import { metaTags, projectMeta, staticPages, type PageMeta } from "@/config/seo.ts";
+import { getProjectsForLocale } from "@/model/project.ts";
+import { currentLocale } from "@/i18n";
+import { enterScreen } from "@/hook/useOutlineDraw.ts";
+import { installViewTransitions } from "@/utils/viewTransitions.ts";
 
-const routes = [
+const routes: RouteRecordRaw[] = [
   {
     path: "/",
-    redirect: "/core/entrypoint"
+    redirect: staticPages["Core.Entrypoint"].path
   },
   {
-    path: "/core/entrypoint",
+    path: staticPages["Core.Entrypoint"].path,
     name: "Core.Entrypoint",
-    component: Entrypoint,
-    meta: {
-      title: "Entrypoint | Akkraizen",
-      description:
-        "Welcome to the digital realm of Akkraizen. Session was initialized."
-    }
+    component: Entrypoint
   },
   {
-    path: "/core/file",
+    path: staticPages["Core.File"].path,
     name: "Core.File",
-    component: File,
-    meta: {
-      title: "File | Akkraizen",
-      description: "Personal identification and technical profile of Akkraizen."
-    }
+    component: () => import("@views/File.vue")
   },
   {
-    path: "/core/projects",
+    path: staticPages["Core.Projects"].path,
     name: "Core.Projects",
-    component: Projects,
-    meta: {
-      title: "Projects | Akkraizen",
-      description: "Portfolio of digital experiments and projects."
-    }
+    component: () => import("@views/Projects.vue")
   },
   {
     path: "/core/projects/:id",
     name: "Core.ProjectDetail",
-    component: ProjectDetail,
-    meta: {
-      title: "Detail | Akkraizen",
-      description: "Detailed information about the selected project."
-    }
+    component: () => import("@views/ProjectDetail.vue")
   },
   {
-    path: "/test",
-    name: "Core.Test",
-    component: Test,
-    meta: {
-      title: "Test | Akkraizen",
-      description: "Component playground and UI stress tests."
-    }
+    path: staticPages["Core.Activity"].path,
+    name: "Core.Activity",
+    component: () => import("@views/Activity.vue")
   },
+  {
+    path: staticPages["Core.CV"].path,
+    name: "Core.CV",
+    component: () => import("@views/CV.vue")
+  },
+  {
+    path: staticPages["Core.Uplink"].path,
+    name: "Core.Uplink",
+    component: () => import("@views/Uplink.vue")
+  },
+  ...(import.meta.env.DEV
+    ? [
+        {
+          path: staticPages["Core.Test"].path,
+          name: "Core.Test",
+          component: () => import("@views/Test.vue")
+        }
+      ]
+    : []),
   {
     path: "/:pathMatch(.*)*",
     name: "Core.NotFound",
-    component: NotFound,
-    meta: {
-      title: "404 | Akkraizen",
-      description: "The requested page was not found."
-    }
+    component: () => import("@views/NotFound.vue")
   }
 ];
 
+const HASH_SCROLL_DELAY_MS = 700;
+
 const router = createRouter({
   history: createWebHistory(),
-  routes
+  routes,
+  scrollBehavior(to, from, savedPosition) {
+    if (savedPosition) return savedPosition;
+    if (!to.hash) return to.path !== from.path ? { top: 0 } : false;
+    return new Promise((resolve) =>
+      setTimeout(() => resolve({ el: to.hash, top: 90, behavior: "smooth" }), HASH_SCROLL_DELAY_MS)
+    );
+  }
 });
 
+installViewTransitions(router);
+
+function resolveMeta(name: string, path: string, id: unknown): PageMeta {
+  if (name === "Core.ProjectDetail") {
+    const project = getProjectsForLocale(currentLocale.value).find((p) => p.id === id);
+    if (project) return projectMeta(project);
+  }
+
+  const page = staticPages[name as keyof typeof staticPages] ?? staticPages["Core.NotFound"];
+  return { ...page, path };
+}
+
+function applyMeta(meta: PageMeta) {
+  document.title = meta.title;
+  for (const [selector, attribute, value] of metaTags(meta))
+    document.querySelector(selector)?.setAttribute(attribute, value);
+}
+
 router.beforeEach((to) => {
-  const title = to.meta.title as string | undefined;
-  const description = to.meta.description as string | undefined;
-
-  if (title) {
-    document.title = title;
-  }
-
-  if (description) {
-    const selectors = ['meta[name="description"]', 'meta[property="og:description"]'];
-    for (const selector of selectors) {
-      document.querySelector(selector)?.setAttribute("content", description);
-    }
-  }
+  applyMeta(resolveMeta(String(to.name), to.path, to.params.id));
 });
 
 router.afterEach((to, from) => {
+  if (to.path !== from.path) enterScreen(to.path);
   if (to.path !== from.path) {
     playTransitionSound()
   }

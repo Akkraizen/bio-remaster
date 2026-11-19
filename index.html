@@ -13,23 +13,58 @@
     <!-- Preload -->
     <link rel="preload" href="/audio/click.wav" as="audio" type="audio/wav">
     <link rel="preload" href="/audio/progress-bar.wav" as="audio" type="audio/wav">
-    <link rel="preload" href="/avatar.jpg" as="image" type="image/jpeg">
+    <link rel="preload" href="/avatar.webp" as="image" type="image/webp">
 
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://akkraizen.dev/" />
     <meta property="og:title" content="Akkraizen | Bio" />
     <meta property="og:description" content="Akkraizen's personal biography." />
-    <meta property="og:image" content="https://akkraizen.dev/og-image.png" />
+    <meta property="og:image" content="https://akkraizen.dev/avatar.jpg" />
 
     <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:card" content="summary" />
     <meta property="twitter:url" content="https://akkraizen.dev/" />
     <meta property="twitter:title" content="Akkraizen | Bio" />
     <meta property="twitter:description" content="Akkraizen's personal biography." />
-    <meta property="twitter:image" content="https://akkraizen.dev/og-image.png" />
+    <meta property="twitter:image" content="https://akkraizen.dev/avatar.jpg" />
 
     <meta name="theme-color" content="#c6ff33" />
+
+    <style>
+      .prerender {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        margin: -1px;
+        overflow: hidden;
+        clip-path: inset(50%);
+        white-space: nowrap;
+      }
+    </style>
+    <noscript>
+      <style>
+        .prerender {
+          position: static;
+          width: auto;
+          height: auto;
+          margin: 0 auto;
+          max-width: 760px;
+          padding: 2rem 1rem;
+          overflow: visible;
+          clip-path: none;
+          white-space: normal;
+          line-height: 1.6;
+        }
+        .prerender nav ul {
+          display: flex;
+          flex-wrap: wrap;
+          gap: 1rem;
+          padding: 0;
+          list-style: none;
+        }
+      </style>
+    </noscript>
 
     <!--
       Boot script: applies theme, tab icon and motion mode before first paint,
@@ -52,12 +87,14 @@
 
         // Theme: a saved one, or random without repeating the previous (mirrors src/hook/useTheme.ts)
         var theme = read(keys.themePreference);
-        if (themes.indexOf(theme) === -1) {
-          var last = read(keys.lastTheme);
+        var last = read(keys.lastTheme);
+        var secret = config.secretThemes.indexOf(theme) !== -1 ? theme : null;
+        if (secret && themes.indexOf(last) !== -1) theme = last;
+        else if (themes.indexOf(theme) === -1) {
           var pool = themes.filter(function (name) { return name !== last; });
           theme = pool[Math.floor(Math.random() * pool.length)];
         }
-        root.dataset.theme = theme;
+        root.dataset.theme = secret || theme;
 
         var icon = document.querySelector('link[rel="icon"]');
         if (icon) icon.setAttribute("href", config.logoPath.prefix + theme + config.logoPath.suffix);

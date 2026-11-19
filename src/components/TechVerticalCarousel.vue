@@ -6,7 +6,10 @@ import { playCarouselTick } from "@/utils/synthSounds.ts";
 
 const props = defineProps<{
   duration?: number;
+  rows?: number;
 }>();
+
+const rows = computed(() => props.rows ?? 3);
 
 const duration = computed(() => props.duration || 30);
 
@@ -27,7 +30,9 @@ const listPeriod = computed(() => {
 
 const itemSize = computed(() => (isHorizontal.value ? itemWidth : itemHeight));
 
-const focusRadius = computed(() => (isHorizontal.value ? 2.5 : 1.5));
+const focusRadius = computed(() =>
+  isHorizontal.value ? 2.5 : isCompact.value ? 1.5 : rows.value / 2
+);
 
 const offset = ref(0);
 const isHovered = ref(false);
@@ -69,7 +74,7 @@ const next = (manual = false) => {
 
   setTimeout(() => {
     isAnimating.value = false;
-    // Бесшовный скачок при достижении границы
+    // Seamless jump when reaching the boundary
     if (offset.value <= -listPeriod.value) {
       offset.value += listPeriod.value;
     }
@@ -110,7 +115,7 @@ const updateAnimation = (time: number) => {
         timeSinceLastSwitch = 0;
       }
     } else if (isHovered.value) {
-      timeSinceLastSwitch = 0; // Сброс таймера при наведении
+      timeSinceLastSwitch = 0; // Reset the timer on hover
     }
   }
 
@@ -122,7 +127,7 @@ const handleWheel = (event: WheelEvent) => {
   event.preventDefault();
   if (isAnimating.value) return;
 
-  // Колесико работает как переключатель
+  // The wheel acts as a switch
   if (event.deltaY > 0) {
     next();
   } else if (event.deltaY < 0) {
@@ -130,20 +135,20 @@ const handleWheel = (event: WheelEvent) => {
   }
 };
 
-// Скролл пальцем: лента следует за пальцем, при отпускании докатывается
-// по инерции и дошагивает до ближайшего элемента без скачка назад
+// Touch scroll: the strip follows the finger, glides on release
+// with inertia and settles on the nearest item without jumping back
 const isTouching = ref(false);
 const isGliding = ref(false);
 const touchStart = ref(0);
 const touchCrossStart = ref(0);
 const touchDelta = ref(0);
 const suppressClick = ref(false);
-let glideVelocity = 0; // Скорость пальца вдоль оси ленты, px/ms
+let glideVelocity = 0; // Finger velocity along the strip axis, px/ms
 let lastMoveTime = 0;
 let glideFrame: number | undefined;
 let lastGlideTime: number | undefined;
 
-// Ось свайпа совпадает с осью прокрутки: X на планшете, Y на мобильных
+// Swipe axis matches the scroll axis: X on tablet, Y on mobile
 
 const touchPosition = (event: TouchEvent) =>
   isHorizontal.value ? event.touches[0].clientX : event.touches[0].clientY;
@@ -168,7 +173,7 @@ const snapToNearest = () => {
 
   setTimeout(() => {
     isAnimating.value = false;
-    // Бесшовный скачок при выходе за границу списка
+    // Seamless jump when leaving the list bounds
     if (offset.value <= -listPeriod.value) {
       offset.value += listPeriod.value;
     } else if (offset.value > 0) {
@@ -177,7 +182,7 @@ const snapToNearest = () => {
   }, 300);
 };
 
-// Докатка ленты по инерции после отпускания пальца
+// Inertial glide of the strip after the finger is released
 const glideStep = (time: number) => {
   if (lastGlideTime !== undefined) {
     const deltaTime = time - lastGlideTime;
@@ -202,7 +207,7 @@ const glideStep = (time: number) => {
 };
 
 const handleTouchStart = (event: TouchEvent) => {
-  stopGlide(); // Повторное касание прерывает докатку по инерции
+  stopGlide(); // A new touch interrupts the inertial glide
   isTouching.value = true;
   touchStart.value = touchPosition(event);
   touchCrossStart.value = touchCrossPosition(event);
@@ -217,13 +222,13 @@ const handleTouchMove = (event: TouchEvent) => {
   const along = touchPosition(event) - touchStart.value;
   const across = touchCrossPosition(event) - touchCrossStart.value;
 
-  // Движение поперек оси ленты — обычная прокрутка страницы, не блокируем ее
+  // Movement across the strip axis is regular page scroll, so don't block it
   if (Math.abs(across) > Math.abs(along)) {
     touchDelta.value = 0;
     return;
   }
 
-  event.preventDefault(); // Блокируем прокрутку страницы вдоль оси свайпа
+  event.preventDefault(); // Block page scroll along the swipe axis
 
   const now = performance.now();
   const deltaTime = now - lastMoveTime;
@@ -241,7 +246,7 @@ const handleTouchEnd = () => {
 
   suppressClick.value = Math.abs(touchDelta.value) > 10;
 
-  // Переносим смещение пальца в ленту, чтобы отпускание не давало скачка назад
+  // Carry the finger offset into the strip so release doesn't jump back
   offset.value += touchDelta.value;
   touchDelta.value = 0;
 
@@ -251,7 +256,7 @@ const handleTouchEnd = () => {
     offset.value -= listPeriod.value;
   }
 
-  // Быстрый флик докатывается по инерции, медленный отпуск — сразу дошагивает
+  // A fast flick glides with inertia, a slow release settles immediately
   if (Math.abs(glideVelocity) > 0.3) {
     glideVelocity = Math.max(-2.5, Math.min(2.5, glideVelocity));
     isGliding.value = true;
@@ -263,7 +268,7 @@ const handleTouchEnd = () => {
 };
 
 const handleSceneClick = (event: MouseEvent) => {
-  // Свайп не должен случайно открывать ссылку элемента
+  // A swipe must not accidentally open the item's link
   if (suppressClick.value) {
     event.stopPropagation();
     event.preventDefault();
@@ -283,12 +288,12 @@ onMounted(() => {
     });
   }
 
-  compactQuery = window.matchMedia("(max-width: 1024px)");
+  compactQuery = window.matchMedia("(max-width: 1200px)");
   isCompact.value = compactQuery.matches;
   compactQuery.addEventListener("change", handleCompactChange);
 
   tabletQuery = window.matchMedia(
-    "(min-width: 769px) and (max-width: 1024px)"
+    "(min-width: 769px) and (max-width: 1200px)"
   );
   isHorizontal.value = tabletQuery.matches;
   tabletQuery.addEventListener("change", handleTabletChange);
@@ -304,8 +309,8 @@ const handleTabletChange = (event: MediaQueryListEvent) => {
   resetOffset();
 };
 
-// При смене режима offset остается в единицах старой оси/сетки —
-// сбрасываем его, чтобы лента всегда была выровнена по элементам.
+// When the mode changes, offset stays in units of the old axis/grid,
+// so reset it to keep the strip aligned to items.
 const resetOffset = () => {
   stopGlide();
   offset.value = 0;
@@ -314,7 +319,7 @@ const resetOffset = () => {
 };
 
 const handleTouchCancel = () => {
-  // Иначе зависший isTouching навсегда останавливает автопрокрутку
+  // Otherwise a stuck isTouching stops autoscroll forever
   isTouching.value = false;
   touchDelta.value = 0;
   glideVelocity = 0;
@@ -330,7 +335,7 @@ onUnmounted(() => {
   tabletQuery?.removeEventListener("change", handleTabletChange);
 });
 
-// Клонируем список для бесшовности; на мобильных разбиваем на пары (две колонки)
+// Clone the list for seamless looping; on mobile split into pairs (two columns)
 const displayRows = computed<CarouselItem[][]>(() => {
   const items: CarouselItem[] = [...technologies, ...technologies, ...technologies].map(
     (tech, index) => ({
@@ -351,7 +356,7 @@ const displayRows = computed<CarouselItem[][]>(() => {
 });
 
 const currentTransform = computed(() => {
-  // Центрируем относительно контейнера (+ смещение пальцем при свайпе)
+  // Center relative to the container (+ finger offset while swiping)
   const shift = offset.value - listPeriod.value + dragOffset.value;
   return isHorizontal.value
     ? `translateX(${shift}px)`
@@ -366,7 +371,7 @@ const getItemStyle = (index: number) => {
     : containerRef.value.clientHeight;
   const center = containerSize / 2;
 
-  // Позиция центра элемента в сцене (с учетом перетаскивания пальцем)
+  // Item center position in the scene (including finger drag)
   const itemStartInList = index * itemSize.value;
   const listOffset = offset.value + dragOffset.value - listPeriod.value;
   const actualCenterInScene = itemStartInList + listOffset + itemSize.value / 2;
@@ -374,25 +379,25 @@ const getItemStyle = (index: number) => {
   const distance = (actualCenterInScene - center) / itemSize.value;
   const absDistance = Math.abs(distance);
 
-  // Фокусное окно: центральный элемент и соседи остаются четкими,
-  // все, что дальше радиуса, полностью скрыто (3 по вертикали, 5 по горизонтали)
+  // Focus window: the center item and its neighbors stay sharp,
+  // everything beyond the radius is fully hidden (3 vertical, 5 horizontal)
   const radius = focusRadius.value;
-  // В горизонтальной ленте все элементы одного размера — тогда зазоры между
-  // видимыми элементами одинаковые; фокус передается только яркостью/прозрачностью
+  // In the horizontal strip all items are the same size, so gaps between
+  // visible items are equal; focus is conveyed only by brightness/opacity
   const scale = isHorizontal.value
     ? 1
     : 1 - Math.min(absDistance, radius) * 0.15;
   const opacity = 1 - Math.min(absDistance, radius) * 0.2;
   const zIndex = Math.round((5 - absDistance) * 10);
 
-  // Добавляем небольшое смещение вглубь (perspective effect)
+  // Add a slight depth offset (perspective effect)
   const perspectiveScale = isHorizontal.value
     ? 1
     : 1 - Math.min(absDistance, 2) * 0.05;
 
-  // Затемняем все, кроме центрального элемента; в широком горизонтальном
-  // окне затемняем мягче, чтобы крайние элементы не уходили в черный
-  const dimStep = isHorizontal.value ? 0.3 : 0.5;
+  // Dim everything except the center item; in the wide horizontal
+  // window dim more gently so the edge items don't fade to black
+  const dimStep = isHorizontal.value ? 0.3 : 0.75 / radius;
   const brightness = 1 - Math.min(absDistance, radius) * dimStep;
 
   return {
@@ -413,7 +418,7 @@ const getItemStyle = (index: number) => {
 </script>
 
 <template>
-  <div class="tech-vertical-carousel-wrapper">
+  <div class="tech-vertical-carousel-wrapper" :style="{ '--carousel-rows': rows }">
     <div
       ref="containerRef"
       class="tech-vertical-carousel-scene"
@@ -421,9 +426,9 @@ const getItemStyle = (index: number) => {
       data-cursor-group=".carousel-item.is-center .technology-container"
       data-cursor-group-strict
       :style="{
-        // Якорь ленты задается инлайном из того же состояния, что и
-        // математика трансформации: центрирование по главной оси
-        // выталкивает широкую ленту за пределы окна
+        // The strip anchor is set inline from the same state as
+        // the transform math: centering on the main axis
+        // pushes the wide strip out of the window
         justifyContent: isHorizontal ? 'flex-start' : 'center'
       }"
       @mouseenter="isHovered = true"
@@ -442,8 +447,8 @@ const getItemStyle = (index: number) => {
         }"
         :style="{
           transform: currentTransform,
-          // Ось ленты и ее якорь — инлайном, чтобы раскладка никогда не
-          // расходилась с осью трансформации в getItemStyle/currentTransform
+          // Strip axis and anchor are inline so the layout never
+          // diverges from the transform axis in getItemStyle/currentTransform
           flexDirection: isHorizontal ? 'row' : 'column',
           width: isHorizontal ? 'auto' : '100%',
           height: isHorizontal ? '100%' : 'auto',
@@ -476,7 +481,7 @@ const getItemStyle = (index: number) => {
 
 .tech-vertical-carousel-wrapper {
   width: min-content;
-  height: 150px; // Ровно 3 элемента по 50px
+  height: calc(var(--carousel-rows, 3) * 50px);
   margin: 0 auto;
 }
 
@@ -490,8 +495,8 @@ const getItemStyle = (index: number) => {
   contain: paint;
 
   &.horizontal {
-    // Прижимаем ленту к левому краю: на планшете ось прокрутки совпадает с главной осью флекса,
-    // и центррование выталкивает ее за пределы видимого окна
+    // Pin the strip to the left edge: on tablet the scroll axis matches the flex main axis,
+    // and centering pushes it out of the visible window
 
     justify-content: flex-start;
   }
@@ -503,14 +508,14 @@ const getItemStyle = (index: number) => {
   align-items: center;
   width: 100%;
   transition: none;
-  flex-shrink: 0; // Лента шире окна сцены — сжатие ломает геометрию слотов
+  flex-shrink: 0; // The strip is wider than the scene window; shrinking breaks slot geometry
 
   &.animating {
     transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
   }
 
   &.horizontal {
-    // Планшет: лента вытягивается по горизонтали
+    // Tablet: the strip stretches horizontally
     flex-direction: row;
     height: 100%;
     width: auto;
@@ -522,7 +527,7 @@ const getItemStyle = (index: number) => {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 8px; // Зазор между колонками на мобильном
+  gap: 8px; // Gap between columns on mobile
   padding: 2px 0;
   box-sizing: border-box;
   will-change: transform, opacity;
@@ -535,24 +540,24 @@ const getItemStyle = (index: number) => {
   }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
+@media (min-width: 769px) and (max-width: 1200px) {
   .tech-vertical-carousel-wrapper {
     width: 100%;
-    max-width: 705px; // Ровно 5 элементов по 141px в горизонтальной ленте
-    height: 100px; // Горизонтальной ленте не нужен вертикальный размах "барабана"
+    max-width: 705px; // Exactly 5 items of 141px in the horizontal strip
+    height: 100px; // The horizontal strip does not need the vertical "drum" height
   }
 }
 
 @media (max-width: 768px) {
   .tech-vertical-carousel-wrapper {
-    width: 100%; // Не выходим за пределы контейнера на мобильных
+    width: 100%; // Stay within the container on mobile
     max-width: 280px;
     height: 150px;
   }
 }
 
 @media (max-width: 340px) {
-  // Уменьшаем элементы, чтобы две колонки помещались в узкий контейнер
+  // Shrink items so two columns fit in a narrow container
   .carousel-item {
     gap: 4px;
 

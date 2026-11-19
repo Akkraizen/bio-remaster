@@ -4,19 +4,26 @@ import { useRoute } from "vue-router";
 import NavLink from "@components/NavLink.vue";
 import CyberSettings from "@components/CyberSettings.vue";
 import CyberOutline from "@components/CyberOutline.vue";
-import CyberHero from "@components/CyberHero.vue";
 import { playCloseSweep, playOpenSweep } from "@/utils/synthSounds.ts";
 import { useI18n } from "@/i18n";
+import CyberBadge from "@components/CyberBadge.vue";
+import { openTerminal, registerExclusiveOverlay, terminalAvailable, terminalOpen } from "@/hook/useOverlays.ts";
+import { lockScroll } from "@/hook/useScrollLock.ts";
 
 const route = useRoute();
 const { t } = useI18n();
 
 const isMenuOpen = ref(false);
 
+lockScroll(isMenuOpen);
+registerExclusiveOverlay(isMenuOpen);
+
 const navLinks = computed(() => [
   { path: "/core/entrypoint", label: t("nav.entrypoint") },
   { path: "/core/file", label: t("nav.file") },
-  { path: "/core/projects", label: t("nav.projects") }
+  { path: "/core/projects", label: t("nav.projects") },
+  { path: "/core/activity", label: t("nav.activity") },
+  { path: "/core/uplink", label: t("nav.uplink") }
 ]);
 
 const toggleMenu = () => {
@@ -48,7 +55,20 @@ watch(
         class="cyber-navbar-main"
         data-cursor-group=".cyber-badge, .router-link-container, .menu-toggle"
       >
-        <CyberSettings />
+        <div class="system-controls">
+          <CyberSettings />
+          <CyberBadge
+            v-if="terminalAvailable"
+            text=">_"
+            :title="t('terminal.open')"
+            :aria-label="t('terminal.open')"
+            type="info"
+            shape="diagonal-tl-br"
+            :active="terminalOpen"
+            interactive
+            @click="openTerminal"
+          />
+        </div>
 
         <div class="toggle-container">
           <CyberOutline shape="diagonal-tl-br" :corner-size="10">
@@ -88,11 +108,8 @@ watch(
       <div v-if="isMenuOpen" class="mobile-menu">
         <div class="mobile-menu-content">
           <div class="menu-header">
-            <CyberHero
-              title=""
-              :subtitle="t('nav.systemNavLinking')"
-              variant="small"
-            />
+            <span class="menu-prompt">{{ t("nav.systemNavLinking") }}</span>
+            <span class="menu-count">[{{ String(navLinks.length).padStart(2, "0") }}]</span>
           </div>
           <nav class="mobile-nav" data-cursor-group=".router-link-container">
             <NavLink
@@ -106,7 +123,11 @@ watch(
             />
           </nav>
           <div class="menu-footer">
-            <p>{{ t("nav.authGranted") }}</p>
+            <div class="hazard" aria-hidden="true"></div>
+            <div class="menu-status">
+              <span><i class="status-dot"></i>{{ t("nav.authGranted") }}</span>
+              <span class="menu-location">{{ route.path }}</span>
+            </div>
           </div>
         </div>
       </div>
@@ -116,6 +137,7 @@ watch(
 
 <style lang="scss" scoped>
 @use "@style/_vars";
+@use "@style/_mixins";
 
 .cyber-navbar-container {
   position: relative;
@@ -131,6 +153,12 @@ watch(
   align-items: center;
   backdrop-filter: blur(10px);
   position: relative;
+}
+
+.system-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .toggle-container {
@@ -183,7 +211,8 @@ watch(
 
 .navbar-nav {
   display: flex;
-  gap: 2rem;
+  align-items: center;
+  gap: 0.75rem;
 }
 
 .mobile-menu {
@@ -198,26 +227,45 @@ watch(
 }
 
 .mobile-menu-content {
-  padding: 15px;
+  padding: 1.25rem 1rem calc(63px + 1rem);
   width: 100%;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
+  background: vars.$bg-color;
 }
 
 .menu-header {
-  padding-bottom: 5px;
-  font-size: 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 0.25rem 0.6rem;
+  border-bottom: 1px solid vars.alpha(vars.$accent-color, 0.35);
   color: vars.$accent-color;
-  border-bottom: 1px solid vars.alpha(vars.$accent-color, 0.3);
+  font-size: 0.8rem;
+  font-weight: bold;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+}
 
-  :deep(.subtitle) {
-    font-size: 1.1rem;
+.menu-prompt {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 
-    @media (max-width: 370px) {
-      font-size: 0.9rem;
-    }
+  &::after {
+    content: "_";
+    animation: blink 1s steps(2) infinite;
   }
+}
+
+.menu-count {
+  flex-shrink: 0;
+  color: vars.$text-color;
+  opacity: 0.5;
 }
 
 .mobile-nav {
@@ -225,14 +273,47 @@ watch(
   display: flex;
   box-sizing: border-box;
   flex-direction: column;
-  gap: 1.5rem;
-  flex-grow: 1;
+  margin-top: 0.5rem;
 }
 
 .menu-footer {
-  margin-top: 2rem;
+  margin-top: auto;
+  padding-top: 1.5rem;
+}
+
+.hazard {
+  height: 6px;
+  @include mixins.cyberpunk-stripes(vars.$accent-color, 0.6, 5px);
+}
+
+.menu-status {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid vars.alpha(vars.$accent-color, 0.45);
+  border-top: none;
   font-size: 0.7rem;
-  opacity: 0.5;
+  font-weight: bold;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  span {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+}
+
+.status-dot {
+  width: 6px;
+  height: 6px;
+  background: vars.$accent-color;
+  animation: blink 1s steps(2) infinite;
+}
+
+.menu-location {
+  color: vars.$accent-color;
 }
 
 .mobile-menu-enter-active {
@@ -248,8 +329,8 @@ watch(
   opacity: 0;
 }
 
-@media (max-width: 1024px) {
-  // Планшеты и мобильные: показываем переключатель вместо горизонтального меню
+@media (max-width: 1000px) {
+  // Tablets and mobile: show the toggle instead of the horizontal menu
   .desktop-only {
     display: none !important;
   }

@@ -35,7 +35,7 @@ const goToDetail = () => {
 </script>
 
 <template>
-  <CyberCard class="project-item" @click="goToDetail">
+  <CyberCard class="project-item" :style="{ viewTransitionName: `project-${props.id}` }" @click="goToDetail">
     <template #header>
       <div class="project-header">
         <span class="project-id">#{{ props.id }}</span>

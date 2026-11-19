@@ -376,11 +376,26 @@ export function useCyberShape(options: MaybeRefOrGetter<CyberShapeOptions> = {})
     return `polygon(${polyPoints})`;
   });
 
+  const getOuterClipPath = computed(() => {
+    const points = getPoints.value;
+    if (points.length === 0) return "none";
+
+    const w = width.value;
+    const h = height.value;
+    const b = (toValue(options).borderWidth ?? DEFAULT_BORDER_WIDTH) / 2;
+    const snap = (value: number, size: number) =>
+      value === b ? 0 : value === size - b ? size : value;
+
+    const polyPoints = points.map((p) => `${snap(p.x, w)}px ${snap(p.y, h)}px`).join(", ");
+    return `polygon(${polyPoints})`;
+  });
+
   return {
     containerRef,
     width,
     height,
     getPath,
-    getClipPath
+    getClipPath,
+    getOuterClipPath
   };
 }

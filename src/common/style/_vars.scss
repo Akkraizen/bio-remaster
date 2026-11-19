@@ -9,6 +9,7 @@ $glitch-color-2: var(--c-glitch-2);
 $grid-color: var(--grid-color);
 $border-width: 2px;
 $corner-size: 15px;
+$overlay-dim: rgba(0, 0, 0, 0.72);
 
 /// Color with opacity; works with runtime (CSS variable) colors unlike rgba()
 /// @param {Color} $color

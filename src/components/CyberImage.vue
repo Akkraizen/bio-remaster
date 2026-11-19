@@ -3,18 +3,22 @@ import { onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useCyberShape } from "@/hook/useCyberShape";
 import { reducedMotion } from "@/hook/usePreferences.ts";
 
-const props = defineProps<{
-  src: string;
-  alt?: string;
-  cornerSize?: number;
-  borderWidth?: number;
-}>();
+const props = withDefaults(
+  defineProps<{
+    src: string;
+    alt?: string;
+    cornerSize?: number;
+    boardWidth?: number;
+    borderWidth?: number;
+  }>(),
+  { boardWidth: 10 }
+);
 
 // @ts-ignore
 const { containerRef, getClipPath } = useCyberShape(() => ({
   variant: "cyber-image-bottom",
   cornerSize: props.cornerSize ?? 20,
-  borderWidth: props.borderWidth ?? 10
+  borderWidth: props.boardWidth ?? 10
 }));
 
 // Static noise is shown until the image loads, then it "powers on" like a CRT
@@ -108,8 +112,8 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <div ref="containerRef" class="cyber-image-container" @mouseenter="glitch()">
-    <div class="cyber-border-left">
+  <div ref="containerRef" class="cyber-image-container" :style="{ width: `calc(100% - ${boardWidth}px`}" @mouseenter="glitch()">
+    <div class="cyber-border-left" :style="{ width: boardWidth + 'px'}">
       <svg width="100%" height="100%" preserveAspectRatio="none">
         <defs>
           <pattern
@@ -134,7 +138,7 @@ onBeforeUnmount(() => {
     <div
       class="image-container"
       :class="{ glitching }"
-      :style="{ clipPath: getClipPath }"
+      :style="{ clipPath: getClipPath, left: boardWidth + 'px' }"
     >
       <div v-if="!loaded" class="image-static" aria-hidden="true" />
       <img
@@ -178,7 +182,6 @@ onBeforeUnmount(() => {
 
 .cyber-image-container {
   position: relative;
-  width: calc(100% - 10px);
   aspect-ratio: 1 / 1;
   display: block;
   overflow: hidden;
@@ -367,7 +370,6 @@ onBeforeUnmount(() => {
   top: 0;
   left: 0;
   bottom: 0;
-  width: 10px;
   background: vars.$accent-color;
   animation: borderReveal 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
 }
@@ -383,7 +385,6 @@ onBeforeUnmount(() => {
 
 .image-container {
   position: absolute;
-  left: 10px;
   width: calc(100% - 10px);
   height: 100%;
 }

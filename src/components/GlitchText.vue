@@ -43,7 +43,7 @@ const { display, replay } = useDecrypt(
     font-size: 8rem;
     line-height: 1;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       font-size: 6rem;
     }
 
@@ -60,7 +60,7 @@ const { display, replay } = useDecrypt(
     font-size: 6rem;
     line-height: 1;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       font-size: 4.5rem;
     }
 
@@ -76,7 +76,7 @@ const { display, replay } = useDecrypt(
   &.medium {
     font-size: 2rem;
 
-    @media (max-width: 1024px) {
+    @media (max-width: 1200px) {
       font-size: 1.8rem;
     }
 

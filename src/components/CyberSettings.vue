@@ -1,15 +1,19 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { useRoute } from "vue-router";
 import CyberBadge from "@components/CyberBadge.vue";
 import CyberOutline from "@components/CyberOutline.vue";
 import CyberHero from "@components/CyberHero.vue";
 import CyberButton from "@components/CyberButton.vue";
 import { translations, useI18n, type Locale } from "@/i18n";
-import { useTheme, type ThemePreference } from "@/hook/useTheme.ts";
+import { activeThemeName, secretThemes, useTheme, type ThemePreference } from "@/hook/useTheme.ts";
 import {
+  cursorStyles,
+  screensaverModes,
   usePreferences,
+  type CursorStyle,
   type MotionMode,
+  type ScreensaverMode,
   type VolumeLevel
 } from "@/hook/usePreferences.ts";
 import {
@@ -21,9 +25,25 @@ import {
 } from "@/utils/synthSounds.ts";
 import { triggerGlitch } from "@/utils/glitchFx.ts";
 import { useResponsive } from "@/hook/useResponsive.ts";
+import { lockScroll } from "@/hook/useScrollLock.ts";
+import { registerExclusiveOverlay } from "@/hook/useOverlays.ts";
+import {
+  achievementCount,
+  achievementIds,
+  achievements,
+  allUnlocked,
+  currentRank,
+  hasAchievement,
+  isSecretThemeUnlocked,
+  nextRank
+} from "@/utils/achievements.ts";
+import { startFinale } from "@/hook/useFinale.ts";
+import { downloadCard, shareCard } from "@/utils/shareCard.ts";
+import { showToast } from "@/utils/easterEggs.ts";
+import { track } from "@/utils/analytics.ts";
 
 const route = useRoute();
-const { locale, setLocale, t } = useI18n();
+const { locale, setLocale, setLeet, leetMode, t } = useI18n();
 const { theme, preference, isRandom, themes, setThemePreference } = useTheme();
 const { preferences, volumeLevels } = usePreferences();
 const { isLarge } = useResponsive();
@@ -38,6 +58,11 @@ const outlineProps = {
 } as const;
 
 const locales = Object.keys(translations) as Locale[];
+const LEET = "l33t";
+const languageOptions = computed(() => [...locales, ...(hasAchievement("polyglot") ? [LEET] : [])]);
+const isLanguageActive = (code: string) =>
+  code === LEET ? leetMode.value : !leetMode.value && code === locale.value;
+const unlockedSecretThemes = computed(() => secretThemes.filter(isSecretThemeUnlocked));
 const motionModes: MotionMode[] = ["full", "reduced"];
 const toggleValues = [true, false];
 
@@ -51,6 +76,8 @@ const optionProps = {
 } as const;
 
 const isOpen = ref(false);
+lockScroll(isOpen);
+registerExclusiveOverlay(isOpen);
 const root = ref<HTMLElement | null>(null);
 const panel = ref<HTMLElement | null>(null);
 const panelPosition = ref({ top: 0, left: 0, maxHeight: 0 });
@@ -84,9 +111,57 @@ const close = () => {
   isOpen.value = false;
 };
 
-const selectLocale = (value: Locale) => {
+const selectLocale = (value: string) => {
   playConfirm();
-  if (value !== locale.value) setLocale(value);
+  if (value === LEET) {
+    if (!leetMode.value) setLeet();
+    return;
+  }
+  if (value !== locale.value || leetMode.value) setLocale(value as Locale);
+};
+
+const setScreensaverMode = (value: ScreensaverMode) => {
+  preferences.screensaverMode = value;
+  playConfirm();
+};
+
+const setCursorStyle = (value: CursorStyle) => {
+  preferences.cursorStyle = value;
+  playConfirm();
+};
+
+const setVimKeys = (enabled: boolean) => {
+  preferences.vimKeys = enabled;
+  playConfirm();
+};
+
+const sharing = ref(false);
+
+const share = async () => {
+  if (sharing.value) return;
+  sharing.value = true;
+  playConfirm();
+  try {
+    track("share_card", { result: await shareCard() });
+  } catch {
+    showToast("SHARE_FAILED");
+  } finally {
+    sharing.value = false;
+  }
+};
+
+const download = async () => {
+  playConfirm();
+  try {
+    await downloadCard();
+  } catch {
+    showToast("EXPORT_FAILED");
+  }
+};
+
+const replayFinale = () => {
+  close();
+  setTimeout(startFinale, 250);
 };
 
 const setSound = (enabled: boolean) => {
@@ -111,8 +186,18 @@ const setAmbient = (enabled: boolean) => {
   playConfirm();
 };
 
+const setThemeSounds = (enabled: boolean) => {
+  preferences.themeSounds = enabled;
+  playConfirm();
+};
+
 const setMotion = (value: MotionMode) => {
   preferences.motion = value;
+  playConfirm();
+};
+
+const setScreensaver = (enabled: boolean) => {
+  preferences.screensaver = enabled;
   playConfirm();
 };
 
@@ -122,20 +207,38 @@ const setCursor = (enabled: boolean) => {
 };
 
 const selectTheme = (value: ThemePreference) => {
-  if (value !== "random" && value === preference.value) {
+  if (value !== "random" && value !== "chameleon" && value === preference.value) {
     playConfirm();
     return;
   }
   setThemePreference(value);
   triggerGlitch("strong");
   playStatic();
-  if (value === "random") playRoulette();
+  if (value === "random" || value === "chameleon") playRoulette();
   else playConfirm();
 };
 
+let previewing = false;
+
+const previewTheme = (name: string) => {
+  if (!hasFinePointer.value) return;
+  previewing = true;
+  document.documentElement.dataset.theme = name;
+};
+
+const endPreview = () => {
+  if (!previewing) return;
+  previewing = false;
+  document.documentElement.dataset.theme = activeThemeName();
+};
+
+watch(isOpen, (open) => {
+  if (!open) endPreview();
+});
+
 const onClickOutside = (event: MouseEvent) => {
-  const target = event.target as Node;
-  if (root.value?.contains(target) || panel.value?.contains(target)) return;
+  const path = event.composedPath();
+  if ((root.value && path.includes(root.value)) || (panel.value && path.includes(panel.value))) return;
   close();
 };
 
@@ -175,6 +278,9 @@ watch(() => route.path, close);
     />
 
     <Teleport to="body">
+      <transition name="settings-backdrop">
+        <div v-if="isOpen && !fullscreen" class="settings-backdrop" aria-hidden="true"></div>
+      </transition>
       <transition
         name="settings-panel"
         @before-enter="playOpenSweep()"
@@ -206,14 +312,15 @@ watch(() => route.path, close);
               class="settings-content"
               data-cursor-group=".cyber-button-container:not(:has(.is-disabled))"
             >
+              <div class="settings-column">
               <section class="settings-section">
                 <h4 class="section-title">{{ t("settings.language") }}</h4>
-                <div class="options options-row">
+                <div class="options" :class="{ 'options-row': languageOptions.length < 3 }">
                   <CyberButton
-                    v-for="code in locales"
+                    v-for="code in languageOptions"
                     :key="code"
                     v-bind="optionProps"
-                    :active="code === locale"
+                    :active="isLanguageActive(code)"
                     @click="selectLocale(code)"
                   >
                     <span class="option-code">{{ code.toUpperCase() }}</span>
@@ -278,8 +385,26 @@ watch(() => route.path, close);
                     }}</span>
                   </CyberButton>
                 </div>
-              </section>
 
+                <h5 class="subsection-title">{{ t("settings.themeSounds") }}</h5>
+                <div class="options options-row">
+                  <CyberButton
+                    v-for="enabled in toggleValues"
+                    :key="String(enabled)"
+                    v-bind="optionProps"
+                    :active="preferences.themeSounds === enabled"
+                    :disabled="!preferences.soundEnabled"
+                    @click="setThemeSounds(enabled)"
+                  >
+                    <span class="option-label">{{
+                      t(enabled ? "settings.on" : "settings.off")
+                    }}</span>
+                  </CyberButton>
+                </div>
+              </section>
+              </div>
+
+              <div class="settings-column">
               <section class="settings-section">
                 <h4 class="section-title">{{ t("settings.motion") }}</h4>
                 <div class="options options-row">
@@ -295,6 +420,38 @@ watch(() => route.path, close);
                     }}</span>
                   </CyberButton>
                 </div>
+
+                <h5 class="subsection-title">{{ t("settings.screensaver") }}</h5>
+                <div class="options options-row">
+                  <CyberButton
+                    v-for="enabled in toggleValues"
+                    :key="String(enabled)"
+                    v-bind="optionProps"
+                    :active="preferences.screensaver === enabled"
+                    @click="setScreensaver(enabled)"
+                  >
+                    <span class="option-label">{{
+                      t(enabled ? "settings.on" : "settings.off")
+                    }}</span>
+                  </CyberButton>
+                </div>
+
+                <template v-if="hasAchievement('matrix')">
+                  <h5 class="subsection-title">{{ t("settings.screensaverMode") }}</h5>
+                  <div class="options options-row">
+                    <CyberButton
+                      v-for="mode in screensaverModes"
+                      :key="mode"
+                      v-bind="optionProps"
+                      class="option-compact"
+                      :active="preferences.screensaverMode === mode"
+                      :disabled="!preferences.screensaver"
+                      @click="setScreensaverMode(mode)"
+                    >
+                      <span class="option-label">{{ t(`settings.screensaverModes.${mode}`) }}</span>
+                    </CyberButton>
+                  </div>
+                </template>
               </section>
 
               <section v-if="hasFinePointer" class="settings-section">
@@ -312,14 +469,33 @@ watch(() => route.path, close);
                     }}</span>
                   </CyberButton>
                 </div>
-              </section>
 
+                <template v-if="hasAchievement('cat')">
+                  <h5 class="subsection-title">{{ t("settings.cursorStyle") }}</h5>
+                  <div class="options options-row">
+                    <CyberButton
+                      v-for="style in cursorStyles"
+                      :key="style"
+                      v-bind="optionProps"
+                      :active="preferences.cursorStyle === style"
+                      :disabled="!preferences.cursor"
+                      @click="setCursorStyle(style)"
+                    >
+                      <span class="option-label">{{ t(`settings.cursorStyles.${style}`) }}</span>
+                    </CyberButton>
+                  </div>
+                </template>
+              </section>
+              </div>
+
+              <div class="settings-column settings-column--wide">
               <section class="settings-section settings-section--theme">
                 <h4 class="section-title">{{ t("settings.theme") }}</h4>
-                <div class="options">
+                <div class="options" @mouseleave="endPreview">
                   <CyberButton
                     v-bind="optionProps"
                     :active="isRandom"
+                    @mouseenter="endPreview"
                     @click="selectTheme('random')"
                   >
                     <span class="swatch swatch-random" aria-hidden="true"
@@ -331,9 +507,23 @@ watch(() => route.path, close);
                     }}</span>
                   </CyberButton>
                   <CyberButton
+                    v-if="hasAchievement('chameleon')"
+                    v-bind="optionProps"
+                    :active="preference === 'chameleon'"
+                    @mouseenter="endPreview"
+                    @click="selectTheme('chameleon')"
+                  >
+                    <span class="swatch swatch-random" aria-hidden="true">~</span>
+                    <span class="option-label">{{ t("theme.chameleon") }}</span>
+                    <span class="option-hint">{{
+                      preference === "chameleon" ? t(`theme.${theme}`) : t("settings.secretBadge")
+                    }}</span>
+                  </CyberButton>
+                  <CyberButton
                     v-for="name in themes"
                     :key="name"
                     v-bind="optionProps"
+                    @mouseenter="previewTheme(name)"
                     :active="name === preference"
                     @click="selectTheme(name)"
                   >
@@ -343,6 +533,91 @@ watch(() => route.path, close);
                     </span>
                     <span class="option-label">{{ t(`theme.${name}`) }}</span>
                   </CyberButton>
+                  <CyberButton
+                    v-for="name in unlockedSecretThemes"
+                    :key="name"
+                    v-bind="optionProps"
+                    @mouseenter="previewTheme(name)"
+                    class="option-secret"
+                    :active="preference === name"
+                    @click="selectTheme(name)"
+                  >
+                    <span
+                      class="swatch"
+                      :class="{ 'swatch-secret': name === 'overclock' }"
+                      :data-theme="name === 'overclock' ? undefined : name"
+                      aria-hidden="true"
+                    >
+                      <span class="swatch-accent" />
+                      <span v-if="name !== 'overclock'" class="swatch-secondary" />
+                    </span>
+                    <span class="option-label">{{ t(`theme.${name}`) }}</span>
+                    <span class="option-hint">{{ t("settings.secretBadge") }}</span>
+                  </CyberButton>
+                </div>
+              </section>
+              </div>
+
+              <section class="settings-section settings-section--secrets">
+                <h4 class="section-title">{{ t("settings.secrets") }}</h4>
+                <p class="secrets-rank">
+                  <span class="rank-label">{{ t("settings.rank") }}</span>
+                  <span class="rank-value">{{ currentRank.label }}</span>
+                  <span v-if="nextRank" class="rank-next">{{
+                    t("settings.nextRank", { rank: nextRank.label, count: nextRank.from })
+                  }}</span>
+                </p>
+                <p class="secrets-count">
+                  {{ t("settings.secretsFound", { found: achievementCount, total: achievementIds.length }) }}
+                </p>
+                <div
+                  class="secrets-bar"
+                  role="progressbar"
+                  :aria-valuenow="achievementCount"
+                  aria-valuemin="0"
+                  :aria-valuemax="achievementIds.length"
+                  :aria-label="t('settings.secrets')"
+                >
+                  <span
+                    v-for="item in achievements"
+                    :key="item.id"
+                    class="secrets-cell"
+                    :class="{ filled: item.unlocked }"
+                  />
+                </div>
+                <ul class="secrets-list">
+                  <li
+                    v-for="item in achievements"
+                    :key="item.id"
+                    :class="{ unlocked: item.unlocked }"
+                  >
+                    {{ item.unlocked ? t(`achievements.items.${item.id}`) : t("settings.secretLocked") }}
+                  </li>
+                </ul>
+                <template v-if="hasAchievement('vim')">
+                  <h5 class="subsection-title">{{ t("settings.vimKeys") }}</h5>
+                  <div class="options options-row secrets-vim">
+                    <CyberButton
+                      v-for="enabled in toggleValues"
+                      :key="String(enabled)"
+                      v-bind="optionProps"
+                      :active="preferences.vimKeys === enabled"
+                      @click="setVimKeys(enabled)"
+                    >
+                      <span class="option-label">{{ t(enabled ? "settings.on" : "settings.off") }}</span>
+                    </CyberButton>
+                  </div>
+                </template>
+                <div class="secrets-actions">
+                  <button type="button" class="secrets-link" :disabled="sharing" @click="share">
+                    {{ t("settings.shareCard") }}
+                  </button>
+                  <button type="button" class="secrets-link" @click="download">
+                    {{ t("settings.downloadCard") }}
+                  </button>
+                  <button v-if="allUnlocked" type="button" class="secrets-link" @click="replayFinale">
+                    {{ t("settings.finale") }}
+                  </button>
                 </div>
               </section>
             </div>
@@ -358,6 +633,7 @@ watch(() => route.path, close);
 
 <style lang="scss" scoped>
 @use "@style/_vars";
+@use "@style/_mixins";
 
 .cyber-settings {
   position: relative;
@@ -422,7 +698,7 @@ watch(() => route.path, close);
   .menu-footer {
     margin-top: 1rem;
     font-size: 0.7rem;
-    opacity: 0.5;
+    opacity: 0.65;
 
     p {
       margin: 0;
@@ -430,7 +706,43 @@ watch(() => route.path, close);
   }
 }
 
-@media (min-width: 769px) and (max-width: 1024px) {
+.settings-column {
+  display: contents;
+}
+
+.settings-panel:not(.fullscreen) {
+  width: min(840px, calc(100vw - 2rem));
+
+  .settings-content {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-content: start;
+    gap: 1.5rem;
+  }
+
+  .settings-column--wide {
+    grid-column: 1 / -1;
+  }
+
+  .settings-section--theme .options {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 0.4rem 0.5rem;
+  }
+
+  .settings-column {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-width: 0;
+  }
+
+  .settings-section--secrets {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1200px) {
   .settings-panel.fullscreen .settings-content {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
@@ -439,7 +751,8 @@ watch(() => route.path, close);
     padding: 1.5rem 12px 0 0;
   }
 
-  .settings-section--theme {
+  .settings-section--theme,
+  .settings-section--secrets {
     grid-column: 1 / -1;
 
     .options {
@@ -514,6 +827,10 @@ watch(() => route.path, close);
   }
 }
 
+.option-code {
+  min-width: 2.6em;
+}
+
 .option-compact :deep(.cyber-button) {
   justify-content: center;
   padding: 0.45rem 0.3rem;
@@ -575,6 +892,19 @@ watch(() => route.path, close);
   }
 }
 
+.swatch-secret .swatch-accent {
+  margin: 2px;
+  background: linear-gradient(90deg, #ff2bd6, #ff6a2b, #e8ff2b, #2bff7a, #2bc8ff, #ff2bd6);
+  background-size: 200% 100%;
+  animation: swatch-cycle 3s linear infinite;
+}
+
+@keyframes swatch-cycle {
+  to {
+    background-position: 200% 0;
+  }
+}
+
 .swatch-random {
   align-items: center;
   justify-content: center;
@@ -590,6 +920,125 @@ watch(() => route.path, close);
 
 .option :deep(.is-active) .swatch {
   border-color: vars.$bg-color;
+}
+
+.secrets-rank {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.25rem 0.6rem;
+  margin: 0 0 0.4rem;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  .rank-label {
+    opacity: 0.7;
+  }
+
+  .rank-value {
+    color: vars.$accent-color;
+    font-size: 0.9rem;
+    font-weight: bold;
+    letter-spacing: 2px;
+  }
+
+  .rank-next {
+    opacity: 0.65;
+  }
+}
+
+.secrets-vim {
+  max-width: 280px;
+}
+
+.secrets-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.25rem;
+  margin-top: 0.9rem;
+}
+
+.secrets-link {
+  padding: 0;
+  border: none;
+  font: inherit;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  cursor: pointer;
+  @include mixins.cyber-link;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: wait;
+  }
+}
+
+.secrets-count {
+  margin: 0 0 0.5rem;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.secrets-bar {
+  display: flex;
+  gap: 3px;
+  height: 8px;
+  margin-bottom: 0.75rem;
+
+  .secrets-cell {
+    flex: 1;
+    background: vars.alpha(vars.$accent-color, 0.15);
+
+    &.filled {
+      background: vars.$accent-color;
+    }
+  }
+}
+
+.secrets-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 0.35rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.7rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+
+  li {
+    padding-left: 0.6rem;
+    border-left: 2px solid vars.alpha(vars.$text-color, 0.2);
+    opacity: 0.6;
+
+    &.unlocked {
+      border-left-color: vars.$accent-color;
+      color: vars.$accent-color;
+      opacity: 1;
+    }
+  }
+}
+
+.settings-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1099;
+  background: vars.$overlay-dim;
+  backdrop-filter: blur(2px);
+}
+
+.settings-backdrop-enter-active,
+.settings-backdrop-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.settings-backdrop-enter-from,
+.settings-backdrop-leave-to {
+  opacity: 0;
 }
 
 .settings-panel-enter-active {

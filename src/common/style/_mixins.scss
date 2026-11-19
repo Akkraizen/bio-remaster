@@ -33,3 +33,28 @@
 @mixin font-mono {
   font-family: 'JetBrains Mono', monospace;
 }
+
+@mixin cyber-link {
+  color: vars.$accent-color;
+  text-decoration: none;
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  background-image: linear-gradient(vars.$accent-color, vars.$accent-color);
+  background-repeat: no-repeat;
+  background-position: left bottom;
+  background-size: 100% 1px;
+  transition:
+    background-size 0.18s steps(4),
+    color 0.18s steps(4);
+
+  &:hover,
+  &:focus-visible {
+    color: vars.$on-accent-color;
+    background-size: 100% 100%;
+    outline: none;
+  }
+
+  :root[data-motion="reduced"] & {
+    transition: none;
+  }
+}

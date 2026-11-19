@@ -12,7 +12,7 @@ const quotes = computed(() => getQuotesForLocale(locale.value));
 </script>
 
 <template>
-  <main class="view">
+  <div class="view">
     <CyberHero
       :title="t('entrypoint.title')"
       :subtitle="`${t('entrypoint.subtitle')} ${version}`"
@@ -33,7 +33,7 @@ const quotes = computed(() => getQuotesForLocale(locale.value));
         />
       </div>
     </section>
-  </main>
+  </div>
 </template>
 
 <style scoped lang="scss">
@@ -65,7 +65,7 @@ const quotes = computed(() => getQuotesForLocale(locale.value));
   grid-template-columns: repeat(3, 1fr);
   gap: 1.5rem;
 
-  @media (max-width: 1024px) {
+  @media (max-width: 1200px) {
     grid-template-columns: 1fr;
     gap: 1.25rem;
   }

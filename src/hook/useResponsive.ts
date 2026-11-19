@@ -11,8 +11,8 @@ export interface BreakpointQueries {
 
 export const DEFAULT_BREAKPOINTS: BreakpointQueries = {
   mobile: "(max-width: 768px)",
-  tablet: "(min-width: 769px) and (max-width: 1024px)",
-  large: "(max-width: 1024px)",
+  tablet: "(min-width: 769px) and (max-width: 1200px)",
+  large: "(max-width: 1200px)",
   desktop: "(min-width: 1025px)"
 };
 
