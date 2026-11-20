@@ -7,7 +7,7 @@ import CyberOutline from "@components/CyberOutline.vue";
 import { playCloseSweep, playOpenSweep } from "@/utils/synthSounds.ts";
 import { useI18n } from "@/i18n";
 import CyberBadge from "@components/CyberBadge.vue";
-import { openTerminal, registerExclusiveOverlay, terminalAvailable, terminalOpen } from "@/hook/useOverlays.ts";
+import { openTerminal, registerExclusiveOverlay, terminalOpen } from "@/hook/useOverlays.ts";
 import { lockScroll } from "@/hook/useScrollLock.ts";
 
 const route = useRoute();
@@ -58,7 +58,6 @@ watch(
         <div class="system-controls">
           <CyberSettings />
           <CyberBadge
-            v-if="terminalAvailable"
             text=">_"
             :title="t('terminal.open')"
             :aria-label="t('terminal.open')"

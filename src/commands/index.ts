@@ -6,7 +6,7 @@ import socials from "@assets/socials";
 import { secretThemes, setThemePreference, themes, type ThemePreference } from "@/hook/useTheme.ts";
 import { hasAchievement, isSecretThemeUnlocked } from "@/utils/achievements.ts";
 import { preferences } from "@/hook/usePreferences.ts";
-import { openTerminal, terminalAvailable } from "@/hook/useOverlays.ts";
+import { openTerminal } from "@/hook/useOverlays.ts";
 import { openExternal } from "@/utils/uiSounds.ts";
 import { playConfirm } from "@/utils/synthSounds.ts";
 import { triggerGlitch } from "@/utils/glitchFx.ts";
@@ -93,21 +93,15 @@ export function getCommands(locale: Locale): Command[] {
     run: () => applyTheme(name)
   }));
 
-  const terminal: Command[] = terminalAvailable.value
-    ? [
-        {
-          id: "system:terminal",
-          group: "system",
-          label: t("palette.openTerminal"),
-          hint: "`",
-          keywords: "terminal shell console",
-          run: openTerminal
-        }
-      ]
-    : [];
-
   const system: Command[] = [
-    ...terminal,
+    {
+      id: "system:terminal",
+      group: "system",
+      label: t("palette.openTerminal"),
+      hint: "`",
+      keywords: "terminal shell console",
+      run: openTerminal
+    },
     {
       id: "system:sound",
       group: "system",

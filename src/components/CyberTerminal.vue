@@ -5,7 +5,7 @@ import { useRoute } from "vue-router";
 import TerminalSnake from "@components/TerminalSnake.vue";
 import { complete, execute, promptPath, syncCwd, type TerminalLine } from "@/commands/terminal.ts";
 import { unlockAchievement } from "@/utils/achievements.ts";
-import { terminalOpen } from "@/hook/useOverlays.ts";
+import { isTouch, terminalOpen } from "@/hook/useOverlays.ts";
 import { useVersion } from "@/hook/useVersion";
 import { useI18n } from "@/i18n";
 import { playTypeTick } from "@/utils/synthSounds.ts";
@@ -75,7 +75,7 @@ watch(terminalOpen, async (open) => {
   if (!lines.value.length)
     lines.value.push({ text: t("terminal.welcome", { version }), kind: "accent" });
   await nextTick();
-  inputElement.value?.focus();
+  if (!isTouch.value) inputElement.value?.focus();
   scrollToBottom();
 });
 
@@ -105,6 +105,12 @@ function browseHistory(step: number) {
   if (!history.length) return;
   historyIndex = Math.min(Math.max(historyIndex + step, 0), history.length);
   input.value = history[historyIndex] ?? "";
+}
+
+function tapKey(action: "tab" | "up" | "down") {
+  if (action === "tab") autocomplete();
+  else browseHistory(action === "up" ? -1 : 1);
+  inputElement.value?.focus();
 }
 
 function autocomplete() {
@@ -162,6 +168,12 @@ function autocomplete() {
                     @keydown.tab.prevent="autocomplete"
                   />
                 </form>
+                <div v-if="isTouch && !playing" class="touch-keys">
+                  <button type="button" @mousedown.prevent @click.stop="tapKey('tab')">TAB</button>
+                  <button type="button" aria-label="Previous command" @mousedown.prevent @click.stop="tapKey('up')">↑</button>
+                  <button type="button" aria-label="Next command" @mousedown.prevent @click.stop="tapKey('down')">↓</button>
+                  <button type="button" @mousedown.prevent @click.stop="submit">ENTER</button>
+                </div>
               </div>
             </div>
           </CyberOutline>
@@ -286,13 +298,55 @@ function autocomplete() {
   }
 }
 
-@media (max-width: 600px) {
+.touch-keys {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+
+  button {
+    flex: 1;
+    min-height: 40px;
+    background: vars.alpha(vars.$accent-color, 0.08);
+    border: 1px solid vars.alpha(vars.$accent-color, 0.45);
+    color: vars.$accent-color;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+    cursor: pointer;
+
+    &:active {
+      background: vars.$accent-color;
+      color: vars.$on-accent-color;
+    }
+  }
+}
+
+@media (pointer: coarse) {
   .terminal-backdrop {
+    align-items: flex-start;
     padding: 0;
   }
 
+  .terminal {
+    width: 100%;
+  }
+
   .terminal-inner {
-    height: 70vh;
+    height: 52dvh;
+  }
+
+  .terminal-enter-from,
+  .terminal-leave-to {
+    .terminal {
+      transform: translateY(-40%);
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .terminal-backdrop {
+    padding: 0;
   }
 
   .terminal-screen {

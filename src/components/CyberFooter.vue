@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { useVersion } from "@/hook/useVersion";
 import { useI18n } from "@/i18n";
-import { terminalAvailable } from "@/hook/useOverlays.ts";
+import { hasKeyboard } from "@/hook/useOverlays.ts";
 import { allUnlocked } from "@/utils/achievements.ts";
 
 const { t } = useI18n();
 </script>
 <template>
   <div class="cyber-footer">
-    <p v-if="terminalAvailable" class="hints">{{ t("footer.hints") }}</p>
+    <p v-if="hasKeyboard" class="hints">{{ t("footer.hints") }}</p>
     <p>
       {{ "[C] " + new Date().getFullYear() + " AKKRAIZEN / " + useVersion() }}
       <span v-if="allUnlocked" class="root-badge">{{ t("footerRoot") }}</span>

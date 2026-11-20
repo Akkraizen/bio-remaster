@@ -16,7 +16,7 @@ import {
 import { scrambleTextIn } from "@/utils/scrambleText.ts";
 import { useI18n } from "@/i18n";
 import { preferences } from "@/hook/usePreferences.ts";
-import { overlaysReady, terminalAvailable } from "@/hook/useOverlays.ts";
+import { overlaysReady } from "@/hook/useOverlays.ts";
 import { viewTransitionsEnabled } from "@/utils/viewTransitions.ts";
 
 const CommandPalette = defineAsyncComponent(() => import("@components/CommandPalette.vue"));
@@ -128,7 +128,7 @@ function handleLoadingFinished() {
 
   <template v-if="overlaysReady">
     <CommandPalette />
-    <CyberTerminal v-if="terminalAvailable" />
+    <CyberTerminal />
     <CyberScreensaver />
     <CyberCat />
     <CyberFinale />

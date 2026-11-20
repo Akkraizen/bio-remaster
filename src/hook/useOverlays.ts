@@ -6,13 +6,8 @@ import { lockScroll } from "@/hook/useScrollLock.ts";
 export const paletteOpen = ref(false);
 export const terminalOpen = ref(false);
 export const overlaysReady = ref(false);
-export const terminalAvailable = useMediaQuery(
-  "(hover: hover) and (pointer: fine) and (min-width: 768px)"
-);
-
-watch(terminalAvailable, (available) => {
-  if (!available) terminalOpen.value = false;
-});
+export const hasKeyboard = useMediaQuery("(hover: hover) and (pointer: fine)");
+export const isTouch = useMediaQuery("(pointer: coarse)");
 
 const exclusiveOverlays = new Set<Ref<boolean>>();
 
@@ -38,7 +33,7 @@ lockScroll(() => paletteOpen.value || terminalOpen.value);
 
 export const openPalette = () => (paletteOpen.value = true);
 export const openTerminal = () => {
-  if (terminalAvailable.value) terminalOpen.value = true;
+  terminalOpen.value = true;
 };
 
 export function closeOverlays() {
@@ -60,7 +55,7 @@ export function installOverlayHotkeys() {
       return;
     }
 
-    if (terminalAvailable.value && event.code === "Backquote" && !event.ctrlKey && !event.metaKey && !event.altKey) {
+    if (event.code === "Backquote" && !event.ctrlKey && !event.metaKey && !event.altKey) {
       if (isTyping(event.target) && !terminalOpen.value) return;
       event.preventDefault();
       terminalOpen.value = !terminalOpen.value;
